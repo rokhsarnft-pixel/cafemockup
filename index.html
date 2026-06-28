@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>کافه موکاپ | فروشگاه موکاپ PSD با پرداخت کریپتو - MockupCafe</title>
+<title>MockupCafe | Premium PSD Mockup Store with Crypto Payment</title>
 <meta name="description" content="دانلود موکاپ‌های حرفه‌ای PSD برای موبایل، دسکتاپ، بسته‌بندی و برندینگ. پرداخت امن با Bitcoin، Ethereum و USDT. مناسب طراحان گرافیک و برندهای کافه و رستوران.">
 <meta name="keywords" content="موکاپ, موکاپ رایگان, موکاپ PSD, دانلود موکاپ, موکاپ کافه, موکاپ برندینگ, mockup, free mockup psd, coffee mockup, crypto payment mockup, cafe branding mockup">
 <meta name="author" content="MockupCafe">
@@ -329,6 +329,22 @@ nav{position:sticky;top:0;z-index:100;background:rgba(5,33,63,0.55);
   display:flex;align-items:center;justify-content:center;gap:5px;}
 .pay-sec i{font-size:13px;color:rgba(192,120,64,.6);}
 
+/* ── PAYMENT HOW-TO BOX ── */
+.pay-howto{
+  background:var(--w08);border:1px solid var(--w12);border-radius:10px;
+  padding:1rem 1.1rem;margin-bottom:1.25rem;
+}
+.pay-howto-title{font-size:.82rem;font-weight:700;color:var(--w);margin-bottom:.6rem;}
+.pay-howto-list{margin:0;padding-inline-start:1.1rem;display:flex;flex-direction:column;gap:.35rem;}
+.pay-howto-list li{font-size:.8rem;color:var(--w65);line-height:1.5;}
+.pay-persist-note{
+  display:flex;align-items:flex-start;gap:8px;margin-top:1rem;
+  background:rgba(91,170,220,.08);border:1px solid rgba(91,170,220,.25);
+  border-radius:8px;padding:.7rem .9rem;
+}
+.pay-persist-note i{font-size:15px;color:var(--sky4);flex-shrink:0;margin-top:2px;}
+.pay-persist-note span{font-size:.75rem;color:var(--w65);line-height:1.6;}
+
 /* ── PAYMENT FLOW STEPS ── */
 .pay-error{
   margin-top:1rem;padding:.85rem 1rem;background:rgba(220,80,70,.12);
@@ -409,6 +425,37 @@ body.ltr .lesson-section ul{padding-right:0;padding-left:1.2rem;}
 }
 .lesson-nav-btn:hover{background:var(--w12);}
 .lesson-nav-btn.disabled{opacity:.3;pointer-events:none;}
+
+/* ── MOCKUP DETAIL PAGE ── */
+.mockup-detail-wrap{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem;}
+.md-grid{display:grid;grid-template-columns:1fr 1fr;gap:2rem;align-items:start;}
+@media(max-width:760px){.md-grid{grid-template-columns:1fr;}}
+.md-preview{
+  border-radius:16px;overflow:hidden;background:var(--w08);border:1px solid var(--w12);
+  aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;
+}
+.md-preview img{width:100%;height:100%;object-fit:cover;}
+.md-preview i{font-size:4rem;color:var(--w40);}
+.md-info h1{font-size:1.5rem;font-weight:700;color:var(--w);margin-bottom:.5rem;}
+.md-cat-badge{
+  display:inline-block;font-size:.75rem;color:var(--w65);
+  background:var(--w08);border:1px solid var(--w12);border-radius:20px;padding:3px 14px;margin-bottom:1rem;
+}
+.md-price-row{display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;}
+.md-price{font-size:1.8rem;font-weight:700;color:var(--w);}
+.md-free-tag{background:rgba(93,202,165,.18);color:#5DCAA5;font-size:.78rem;font-weight:700;padding:4px 12px;border-radius:8px;}
+.md-buy-btn{
+  width:100%;background:var(--amber);border:none;color:#fff;padding:14px;border-radius:10px;
+  font-size:1rem;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;
+  cursor:pointer;transition:background .2s;margin-bottom:1.5rem;
+}
+.md-buy-btn:hover{background:var(--amber2);}
+.md-section{margin-bottom:1.5rem;}
+.md-section h3{font-size:.92rem;font-weight:700;color:var(--w);margin-bottom:.6rem;}
+.md-section p{font-size:.85rem;color:var(--w65);line-height:1.75;}
+.md-meta-list{display:flex;flex-direction:column;gap:.5rem;}
+.md-meta-item{display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--w65);}
+.md-meta-item i{font-size:15px;color:var(--amber2);}
 .t-icon{width:42px;height:42px;background:var(--w08);border:1px solid var(--w12);border-radius:10px;
   display:flex;align-items:center;justify-content:center;margin-bottom:1rem;}
 .t-icon i{font-size:1.2rem;color:var(--sky4);}
@@ -452,6 +499,50 @@ body.ltr .lesson-section ul{padding-right:0;padding-left:1.2rem;}
 .s-results h3{font-size:1rem;font-weight:700;color:var(--w);margin-bottom:1rem;}
 
 /* ── FOOTER ── */
+/* ── EMAIL CAPTURE MODAL ── */
+.email-modal-overlay{
+  position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.6);
+  display:flex;align-items:center;justify-content:center;padding:1.5rem;
+  backdrop-filter:blur(4px);
+}
+.email-modal{
+  background:rgba(10,40,70,.97);border:1px solid var(--w20);border-radius:18px;
+  padding:2rem 1.75rem;max-width:380px;width:100%;position:relative;
+  box-shadow:0 30px 80px rgba(0,0,0,.5);text-align:center;
+}
+.email-modal-close{
+  position:absolute;top:14px;right:14px;background:var(--w08);border:none;
+  width:30px;height:30px;border-radius:50%;color:var(--w65);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:background .2s;
+}
+.email-modal-close:hover{background:var(--w20);}
+.email-modal-icon{
+  width:52px;height:52px;margin:0 auto 1rem;border-radius:50%;
+  background:rgba(192,120,64,.18);border:1px solid rgba(192,120,64,.35);
+  display:flex;align-items:center;justify-content:center;
+}
+.email-modal-icon i{font-size:1.4rem;color:var(--amber2);}
+.email-modal h3{font-size:1.05rem;font-weight:700;color:var(--w);margin-bottom:.6rem;}
+.email-modal p{font-size:.82rem;color:var(--w65);line-height:1.7;margin-bottom:1.25rem;}
+.email-modal input{
+  width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid var(--w20);
+  background:var(--w08);color:var(--w);font-size:.9rem;margin-bottom:.5rem;
+  font-family:'Plus Jakarta Sans','Vazirmatn',sans-serif;outline:none;
+  transition:border-color .2s;box-sizing:border-box;
+}
+.email-modal input:focus{border-color:var(--amber2);}
+.email-modal input::placeholder{color:var(--w40);}
+.email-modal-error{
+  font-size:.78rem;color:#f5a8a0;text-align:right;margin-bottom:.75rem;
+}
+body.ltr .email-modal-error{text-align:left;}
+.email-modal-submit{
+  width:100%;background:var(--amber);border:none;color:#fff;padding:12px;
+  border-radius:10px;font-size:.92rem;font-weight:700;cursor:pointer;
+  transition:background .2s;font-family:'Plus Jakarta Sans','Vazirmatn',sans-serif;
+}
+.email-modal-submit:hover{background:var(--amber2);}
+
 footer{background:rgba(5,20,40,.7);backdrop-filter:blur(10px);border-top:1px solid var(--w08);
   padding:1.25rem 2rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;}
 .f-logo{font-size:1rem;font-weight:700;color:var(--w);display:flex;align-items:center;gap:6px;}
@@ -627,18 +718,18 @@ body.ltr .search-bar input{direction:ltr;}
   <div class="mockup-grid" id="mainGrid"></div>
   <noscript>
     <div style="padding:2rem;color:#fff;">
-      <h3>موکاپ‌های موجود در گالری کافه موکاپ:</h3>
+      <h3>Mockups available in the MockupCafe gallery:</h3>
       <ul>
-        <li>iPhone 15 Pro Clay — موکاپ موبایل — رایگان</li>
-        <li>MacBook Pro Workspace — موکاپ دسکتاپ — $4</li>
-        <li>جعبه هدیه پریمیوم — موکاپ محصول — $6</li>
-        <li>کارت ویزیت فلت — موکاپ برندینگ — رایگان</li>
-        <li>iMac Studio Scene — موکاپ دسکتاپ — $8</li>
-        <li>لیوان قهوه برندینگ — موکاپ محصول — رایگان</li>
-        <li>Samsung Galaxy S24 — موکاپ موبایل — $3</li>
-        <li>سربرگ رسمی — موکاپ برندینگ — رایگان</li>
+        <li>iPhone 15 Pro Clay — Mobile Mockup — Free</li>
+        <li>MacBook Pro Workspace — Desktop Mockup — $4</li>
+        <li>Gift Box Premium — Product Mockup — $6</li>
+        <li>Business Card Flat — Branding Mockup — Free</li>
+        <li>iMac Studio Scene — Desktop Mockup — $8</li>
+        <li>Coffee Cup Branding — Product Mockup — Free</li>
+        <li>Samsung Galaxy S24 — Mobile Mockup — $3</li>
+        <li>Letterhead Official — Branding Mockup — Free</li>
       </ul>
-      <p>برای دانلود و خرید، لطفاً جاوااسکریپت مرورگر خود را فعال کنید.</p>
+      <p>To download and purchase, please enable JavaScript in your browser.</p>
     </div>
   </noscript>
 </div>
@@ -735,12 +826,28 @@ body.ltr .search-bar input{direction:ltr;}
           <span class="pay-spinner"></span>
           <span data-fa="در انتظار پرداخت..." data-en="Waiting for payment...">Waiting for payment...</span>
         </div>
+
+        <div class="pay-howto">
+          <div class="pay-howto-title" data-fa="چطور پرداخت کنم؟" data-en="How to pay">How to pay</div>
+          <ol class="pay-howto-list">
+            <li data-fa="کیف‌پول کریپتو خودت را باز کن (مثل Trust Wallet)" data-en="Open your crypto wallet app (e.g. Trust Wallet)">Open your crypto wallet app (e.g. Trust Wallet)</li>
+            <li data-fa="گزینه‌ی Send / ارسال را انتخاب کن" data-en="Choose Send / Withdraw">Choose Send / Withdraw</li>
+            <li data-fa="آدرس زیر را paste کن — نه آدرس کیف‌پول خودت" data-en="Paste the address below — not your own wallet address">Paste the address below — not your own wallet address</li>
+            <li data-fa="دقیقاً همان مقدار نشان‌داده‌شده را بفرست" data-en="Send exactly the amount shown">Send exactly the amount shown</li>
+            <li data-fa="این صفحه را باز نگه دار — وضعیت خودکار آپدیت می‌شود" data-en="Keep this page open — status updates automatically">Keep this page open — status updates automatically</li>
+          </ol>
+        </div>
+
         <div class="pay-lbl" data-fa="ارسال دقیقاً این مقدار:" data-en="Send exactly this amount:">Send exactly this amount:</div>
         <div class="pay-amount-box" id="payAmountBox">—</div>
         <div class="pay-lbl" data-fa="به این آدرس:" data-en="To this address:">To this address:</div>
         <div class="pay-address-box" id="payAddressBox" onclick="copyAddress()">—</div>
         <div class="pay-copy-hint" data-fa="برای کپی کلیک کنید" data-en="Click to copy">Click to copy</div>
         <div class="pay-sec"><i class="ti ti-refresh"></i><span data-fa="این صفحه خودکار وضعیت را چک می‌کند" data-en="This page checks status automatically">This page checks status automatically</span></div>
+        <div class="pay-persist-note">
+          <i class="ti ti-info-circle"></i>
+          <span data-fa="اگر این صفحه را بستی، نگران نباش — دوباره روی دکمه‌ی «خرید» همین موکاپ بزن و وضعیت پرداختت همینجا ادامه پیدا می‌کند." data-en="If you closed this page, don't worry — just click Buy on this same item again and your payment status will resume here.">If you closed this page, don't worry — just click Buy on this same item again and your payment status will resume here.</span>
+        </div>
       </div>
 
       <!-- STEP 3: success -->
@@ -798,6 +905,17 @@ body.ltr .search-bar input{direction:ltr;}
   </div>
 </div>
 
+<!-- MOCKUP DETAIL -->
+<div id="pg-mockup-detail" class="page">
+  <div class="mockup-detail-wrap">
+    <button class="lesson-back" onclick="goPage('gallery',document.querySelectorAll('.nav-tab')[1])">
+      <i class="ti ti-arrow-left" id="mockupBackArrow"></i>
+      <span data-fa="بازگشت به گالری" data-en="Back to Gallery">Back to Gallery</span>
+    </button>
+    <div id="mockupDetailContent"></div>
+  </div>
+</div>
+
 <!-- ABOUT -->
 <div id="pg-about" class="page">
   <div class="about-grid">
@@ -813,6 +931,21 @@ body.ltr .search-bar input{direction:ltr;}
       <div class="c-card"><i class="ti ti-brand-x"></i><div><strong>Twitter / X</strong><span>@CafeMockup</span></div></div>
       <div class="c-card"><i class="ti ti-world"></i><div><strong data-fa="مکان" data-en="Location">Location</strong><span data-fa="اینترنت — همه‌جا" data-en="Internet — Everywhere">Internet — Everywhere</span></div></div>
     </div>
+  </div>
+</div>
+
+<!-- EMAIL CAPTURE MODAL — required before any download (free or paid) -->
+<div id="emailModalOverlay" class="email-modal-overlay" style="display:none;" onclick="if(event.target===this) closeEmailModal()">
+  <div class="email-modal">
+    <button class="email-modal-close" onclick="closeEmailModal()"><i class="ti ti-x"></i></button>
+    <div class="email-modal-icon"><i class="ti ti-mail"></i></div>
+    <h3 data-fa="ایمیل خود را وارد کنید" data-en="Enter your email">Enter your email</h3>
+    <p data-fa="برای دانلود فایل، لطفاً ایمیل خود را وارد کنید. لینک دانلود و سفارش‌های آینده با همین ایمیل پیگیری می‌شوند." data-en="To download this file, please enter your email. Your download link and future orders are tracked with this email.">To download this file, please enter your email. Your download link and future orders are tracked with this email.</p>
+    <input type="email" id="emailModalInput" placeholder="you@example.com" autocomplete="email">
+    <div id="emailModalError" class="email-modal-error" style="display:none;"></div>
+    <button class="email-modal-submit" id="emailModalSubmit" onclick="submitEmailModal()">
+      <span data-fa="ادامه" data-en="Continue">Continue</span>
+    </button>
   </div>
 </div>
 
@@ -1071,6 +1204,7 @@ const lessons = {
 
 /* ─── LESSON RENDERING ─── */
 let currentLessonNum = null;
+let currentMockupKey = null;
 function openLesson(num){
   const l = lessons[num];
   if(!l) return;
@@ -1132,16 +1266,26 @@ const mockups=[
   {fa:'سربرگ رسمی',en:'Letterhead Official',cat:'Branding',free:true,price:'Free',icon:'ti-file-text'},
 ];
 let lang='en';
+// Registry so any rendered mockup card (from gallery, search, or home) can be looked up by name for the detail page
+const mockupRegistry = {};
+function registerMockup(m){
+  const key = m.en.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  mockupRegistry[key] = m;
+  return key;
+}
+
 function renderMockups(items,containerId){
   const g=document.getElementById(containerId);
   if(!g)return;
-  g.innerHTML=items.map((m,i)=>`
+  g.innerHTML=items.map((m,i)=>{
+    const key = registerMockup(m);
+    return `
     <div class="m-card" style="animation-delay:${i*.04}s">
-      <div class="m-thumb" style="${m.image?`background-image:url('${m.image}');background-size:cover;background-position:center;`:`background:rgba(10,40,80,${.3+i*.03})`}">
+      <div class="m-thumb" style="${m.image?`background-image:url('${m.image}');background-size:cover;background-position:center;`:`background:rgba(10,40,80,${.3+i*.03})`}" onclick="openMockupDetail('${key}')" role="button">
         ${m.image ? '' : `<i class="ti ${m.icon}"></i>`}
         <span class="m-badge ${m.free?'b-free':'b-pro'}">${m.free?(lang==='fa'?'رایگان':'Free'):'Pro'}</span>
       </div>
-      <div class="m-body"><h4>${lang==='fa'?m.fa:m.en}</h4><p>${m.cat}</p></div>
+      <div class="m-body" onclick="openMockupDetail('${key}')" role="button" style="cursor:pointer;"><h4>${lang==='fa'?m.fa:m.en}</h4><p>${m.cat}</p></div>
       <div class="m-foot">
         <span class="m-price">${m.price}</span>
         <button class="m-btn" onclick="${m.free ? `handleFreeDownload('${m.downloadUrl||''}')` : `handleBuyMockup(${JSON.stringify(m.price.replace('$','')).replace(/"/g,"'")},'${(lang==='fa'?m.fa:m.en).replace(/'/g,"\\'")}','${m.downloadUrl||''}')`}">
@@ -1149,7 +1293,111 @@ function renderMockups(items,containerId){
           ${m.free?(lang==='fa'?'دانلود':'Download'):(lang==='fa'?'خرید':'Buy')}
         </button>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
+}
+
+function openMockupDetail(key){
+  const m = mockupRegistry[key];
+  if(!m) return;
+  const c = document.getElementById('mockupDetailContent');
+
+  const priceBlock = m.free
+    ? `<span class="md-free-tag">${lang==='fa'?'رایگان':'Free'}</span>`
+    : `<span class="md-price">${m.price}</span>`;
+
+  const buyBtnLabel = m.free
+    ? (lang==='fa'?'دانلود رایگان':'Free Download')
+    : (lang==='fa'?'خرید با کریپتو':'Buy with Crypto');
+  const buyBtnIcon = m.free ? 'ti-download' : 'ti-currency-bitcoin';
+  const buyAction = m.free
+    ? `handleFreeDownload('${m.downloadUrl||''}')`
+    : `handleBuyMockup('${m.price.replace('$','')}','${(lang==='fa'?m.fa:m.en).replace(/'/g,"\\'")}','${m.downloadUrl||''}')`;
+
+  c.innerHTML = `
+    <div class="md-grid">
+      <div class="md-preview">
+        ${m.image ? `<img src="${m.image}" alt="${lang==='fa'?m.fa:m.en}">` : `<i class="ti ${m.icon}"></i>`}
+      </div>
+      <div class="md-info">
+        <span class="md-cat-badge">${m.cat}</span>
+        <h1>${lang==='fa'?m.fa:m.en}</h1>
+        <div class="md-price-row">${priceBlock}</div>
+        <button class="md-buy-btn" onclick="${buyAction}">
+          <i class="ti ${buyBtnIcon}"></i> ${buyBtnLabel}
+        </button>
+        <div class="md-section">
+          <h3>${lang==='fa'?'توضیحات':'Description'}</h3>
+          <p>${lang==='fa'
+            ? `یک موکاپ حرفه‌ای با کیفیت بالا، آماده برای استفاده در پروژه‌های ${m.cat==='Product'?'محصول و بسته‌بندی':m.cat==='Branding'?'برندینگ':m.cat==='Mobile'?'دیجیتال و موبایل':'دسکتاپ'}. شامل Smart Object کاملاً قابل‌ویرایش با نورپردازی و سایه‌ی واقع‌گرا.`
+            : `A professional, high-quality mockup ready for ${m.cat.toLowerCase()} projects. Includes a fully editable Smart Object with realistic lighting and shadow.`}</p>
+        </div>
+        <div class="md-section">
+          <h3>${lang==='fa'?'مشخصات فایل':'File Details'}</h3>
+          <div class="md-meta-list">
+            <div class="md-meta-item"><i class="ti ti-file-zip"></i><span>${lang==='fa'?'فرمت: PSD داخل ZIP/RAR':'Format: PSD inside ZIP/RAR'}</span></div>
+            <div class="md-meta-item"><i class="ti ti-layers-intersect"></i><span>${lang==='fa'?'Smart Object قابل‌ویرایش':'Editable Smart Object'}</span></div>
+            <div class="md-meta-item"><i class="ti ti-certificate"></i><span>${lang==='fa'?'لایسنس تجاری':'Commercial license'}</span></div>
+            <div class="md-meta-item"><i class="ti ti-category"></i><span>${lang==='fa'?'دسته‌بندی: ':'Category: '}${m.cat}</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  goPage('mockup-detail', null);
+  currentMockupKey = key;
+}
+
+/* ── EMAIL CAPTURE — required once per browser before any download ── */
+let pendingEmailAction = null; // function to run after email is captured
+
+function getSavedEmail(){
+  try { return localStorage.getItem('mc_user_email'); } catch(e) { return null; }
+}
+function saveEmail(email){
+  try { localStorage.setItem('mc_user_email', email); } catch(e) {}
+}
+function isValidEmail(email){
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+function openEmailModal(onConfirmed){
+  pendingEmailAction = onConfirmed;
+  document.getElementById('emailModalError').style.display = 'none';
+  const saved = getSavedEmail();
+  document.getElementById('emailModalInput').value = saved || '';
+  document.getElementById('emailModalOverlay').style.display = 'flex';
+  setTimeout(() => document.getElementById('emailModalInput').focus(), 50);
+}
+function closeEmailModal(){
+  document.getElementById('emailModalOverlay').style.display = 'none';
+  pendingEmailAction = null;
+}
+function submitEmailModal(){
+  const input = document.getElementById('emailModalInput');
+  const errorBox = document.getElementById('emailModalError');
+  const email = input.value.trim();
+
+  if(!isValidEmail(email)){
+    errorBox.textContent = lang==='fa' ? 'لطفاً یک ایمیل معتبر وارد کنید.' : 'Please enter a valid email address.';
+    errorBox.style.display = 'block';
+    return;
+  }
+
+  saveEmail(email);
+  document.getElementById('emailModalOverlay').style.display = 'none';
+  const action = pendingEmailAction;
+  pendingEmailAction = null;
+  if(action) action(email);
+}
+
+// Wraps any download/buy action so it always runs through email capture first
+function requireEmail(action){
+  const existing = getSavedEmail();
+  if(existing && isValidEmail(existing)){
+    action(existing);
+  } else {
+    openEmailModal(action);
+  }
 }
 
 function handleFreeDownload(url){
@@ -1157,7 +1405,7 @@ function handleFreeDownload(url){
     alert(lang==='fa' ? 'فایل به‌زودی اضافه می‌شود.' : 'File coming soon.');
     return;
   }
-  window.open(url, '_blank');
+  requireEmail(() => window.open(url, '_blank'));
 }
 
 function handleBuyMockup(price, name, downloadUrl){
@@ -1165,10 +1413,12 @@ function handleBuyMockup(price, name, downloadUrl){
     alert(lang==='fa' ? 'این موکاپ به‌زودی برای فروش آماده می‌شود.' : 'This mockup will be available for purchase soon.');
     return;
   }
-  // Store the pending download so we can release it after payment confirms
-  pendingDownloadUrl = downloadUrl;
-  setPaymentOrder(parseFloat(price), name);
-  goPage('payment', null);
+  requireEmail(() => {
+    // Store the pending download so we can release it after payment confirms
+    pendingDownloadUrl = downloadUrl;
+    setPaymentOrder(parseFloat(price), name);
+    goPage('payment', null);
+  });
 }
 
 /* ─── FILTER BUTTONS ─── */
@@ -1216,7 +1466,7 @@ function goPage(id,btn,skipHistory){
   document.getElementById('searchInput').value='';
   window.scrollTo(0,0);
 
-  /* Reset payment flow UI to step 1 whenever the payment page is opened */
+  /* Reset payment flow UI to step 1 whenever the payment page is opened, then check for a pending payment to resume */
   if(id === 'payment'){
     if(paymentPollInterval) clearInterval(paymentPollInterval);
     const stepChoose = document.getElementById('payStepChoose');
@@ -1229,6 +1479,8 @@ function goPage(id,btn,skipHistory){
     if(actionBtn) actionBtn.disabled = false;
     const errorBox = document.getElementById('payError');
     if(errorBox) errorBox.style.display = 'none';
+    // If there's a payment still waiting/confirming from before, resume tracking it instead of starting fresh
+    resumePendingPaymentIfAny();
   }
 
   /* ── SEO: push a real, shareable URL + update title/description ── */
@@ -1335,6 +1587,62 @@ let currentOrderDescription = 'Pro Espresso Plan - 1 Month';
 let paymentPollInterval = null;
 let pendingDownloadUrl = null;
 
+function savePendingPayment(paymentId, downloadUrl, amount, description) {
+  try {
+    localStorage.setItem('mc_pending_payment', JSON.stringify({
+      paymentId, downloadUrl, amount, description, savedAt: Date.now()
+    }));
+  } catch (e) { /* localStorage may be unavailable in some contexts — safe to ignore */ }
+}
+function clearPendingPayment() {
+  try { localStorage.removeItem('mc_pending_payment'); } catch (e) {}
+}
+function loadPendingPayment() {
+  try {
+    const raw = localStorage.getItem('mc_pending_payment');
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    // Ignore anything older than 24 hours — crypto payments expire well before that
+    if (Date.now() - parsed.savedAt > 24 * 60 * 60 * 1000) {
+      clearPendingPayment();
+      return null;
+    }
+    return parsed;
+  } catch (e) { return null; }
+}
+
+// Called every time the payment page is opened — resumes checking a payment that was already in progress
+async function resumePendingPaymentIfAny() {
+  const pending = loadPendingPayment();
+  if (!pending) return;
+
+  pendingDownloadUrl = pending.downloadUrl;
+
+  try {
+    const res = await fetch(`${PAYMENT_WORKER_URL}/api/payment-status?id=${pending.paymentId}`);
+    const data = await res.json();
+
+    if (data.payment_status === 'finished' || data.payment_status === 'confirmed') {
+      clearPendingPayment();
+      document.getElementById('payStepChoose').style.display = 'none';
+      document.getElementById('payStepAddress').style.display = 'none';
+      document.getElementById('payStepSuccess').style.display = 'block';
+      return;
+    }
+    if (data.payment_status === 'failed' || data.payment_status === 'expired') {
+      clearPendingPayment();
+      return; // fall through to normal step 1
+    }
+    // Still waiting/confirming — resume polling and show the address step again
+    document.getElementById('payStepChoose').style.display = 'none';
+    document.getElementById('payStepSuccess').style.display = 'none';
+    document.getElementById('payStepAddress').style.display = 'block';
+    pollPaymentStatus(pending.paymentId);
+  } catch (e) {
+    // Worker unreachable right now — leave the pending record, user can retry later
+  }
+}
+
 async function startPayment() {
   const btn = document.getElementById('payActionBtn');
   const errorBox = document.getElementById('payError');
@@ -1395,6 +1703,9 @@ async function startPayment() {
     document.getElementById('payStepChoose').style.display = 'none';
     document.getElementById('payStepAddress').style.display = 'block';
 
+    // Persist so we can resume checking even if the page is closed/reloaded before it finishes
+    savePendingPayment(data.payment_id, pendingDownloadUrl, currentOrderAmount, currentOrderDescription);
+
     // Start polling for payment status every 10 seconds
     pollPaymentStatus(data.payment_id);
 
@@ -1421,12 +1732,14 @@ function pollPaymentStatus(paymentId) {
 
       if (data.payment_status === 'finished' || data.payment_status === 'confirmed') {
         clearInterval(paymentPollInterval);
+        clearPendingPayment();
         document.getElementById('payStepAddress').style.display = 'none';
         document.getElementById('payStepSuccess').style.display = 'block';
       }
       // statuses: waiting, confirming, confirmed, finished, failed, expired
       if (data.payment_status === 'failed' || data.payment_status === 'expired') {
         clearInterval(paymentPollInterval);
+        clearPendingPayment();
         document.getElementById('payStepAddress').style.display = 'none';
         document.getElementById('payStepChoose').style.display = 'block';
         const errorBox = document.getElementById('payError');
@@ -1491,10 +1804,20 @@ function setLang(l,btn){
   if(currentLessonNum){
     openLesson(currentLessonNum);
   }
+  if(currentMockupKey){
+    openMockupDetail(currentMockupKey);
+  }
 }
 
 /* ─── INIT ─── */
 renderMockups(mockups,'mainGrid');
+
+const emailModalInputEl = document.getElementById('emailModalInput');
+if(emailModalInputEl){
+  emailModalInputEl.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter') submitEmailModal();
+  });
+}
 </script>
 /* ── REVEAL ON SCROLL (Intersection Observer) ── */
 function setupReveal() {
