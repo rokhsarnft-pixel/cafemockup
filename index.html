@@ -1254,18 +1254,47 @@ function openLesson(num){
   currentLessonNum = num;
 }
 
-const mockups=[
-  {fa:'بطری کلد برو',en:'Cold Brew Bottle',cat:'Product',free:false,price:'$25',icon:'ti-bottle',image:'https://github.com/rokhsarnft-pixel/cafemockup/releases/download/v1.0/cold.brew.bottle.jpg',downloadUrl:'https://github.com/rokhsarnft-pixel/cafemockup/releases/download/v1.0/cold.brew.bottle.2.rar'},
+// Hardcoded fallback mockups — shown only if the live database can't be reached
+const FALLBACK_MOCKUPS=[
   {fa:'iPhone 15 Pro Clay',en:'iPhone 15 Pro Clay',cat:'Mobile',free:true,price:'Free',icon:'ti-device-mobile'},
-  {fa:'MacBook Pro Workspace',en:'MacBook Pro Workspace',cat:'Desktop',free:false,price:'$4',icon:'ti-device-laptop'},
-  {fa:'جعبه هدیه پریمیوم',en:'Gift Box Premium',cat:'Product',free:false,price:'$6',icon:'ti-box'},
+  {fa:'MacBook Pro Workspace',en:'MacBook Pro Workspace',cat:'Desktop',free:false,price:'$25',icon:'ti-device-laptop'},
+  {fa:'جعبه هدیه پریمیوم',en:'Gift Box Premium',cat:'Product',free:false,price:'$25',icon:'ti-box'},
   {fa:'کارت ویزیت فلت',en:'Business Card Flat',cat:'Branding',free:true,price:'Free',icon:'ti-id-badge'},
-  {fa:'iMac Studio Scene',en:'iMac Studio Scene',cat:'Desktop',free:false,price:'$8',icon:'ti-device-imac'},
-  {fa:'لیوان قهوه برندینگ',en:'Coffee Cup Branding',cat:'Product',free:true,price:'Free',icon:'ti-coffee'},
-  {fa:'Samsung Galaxy S24',en:'Samsung Galaxy S24',cat:'Mobile',free:false,price:'$3',icon:'ti-device-mobile'},
-  {fa:'سربرگ رسمی',en:'Letterhead Official',cat:'Branding',free:true,price:'Free',icon:'ti-file-text'},
 ];
+
+const ADMIN_API_URL = 'https://cafemockup-admin.rokhsar-nft.workers.dev';
+
+let mockups = [];
 let lang='en';
+
+// Converts a database row (name_fa, name_en, is_free, price as number, image_url, download_url)
+// into the shape the rest of the site's rendering code expects (fa, en, free, price as "$25" string, image, downloadUrl)
+function mapDbMockup(row){
+  return {
+    fa: row.name_fa,
+    en: row.name_en,
+    cat: row.category,
+    free: !!row.is_free,
+    price: row.is_free ? 'Free' : ('$' + row.price),
+    icon: row.icon || 'ti-box',
+    image: row.image_url || '',
+    downloadUrl: row.download_url || '',
+  };
+}
+
+async function loadMockupsFromDatabase(){
+  try {
+    const res = await fetch(`${ADMIN_API_URL}/api/public/mockups`);
+    if(!res.ok) throw new Error('Bad response');
+    const rows = await res.json();
+    if(!Array.isArray(rows) || rows.length === 0) throw new Error('Empty response');
+    mockups = rows.map(mapDbMockup);
+  } catch(e){
+    console.error('Could not load live mockups, using fallback:', e);
+    mockups = FALLBACK_MOCKUPS;
+  }
+  renderMockups(mockups,'mainGrid');
+}
 // Registry so any rendered mockup card (from gallery, search, or home) can be looked up by name for the detail page
 const mockupRegistry = {};
 function registerMockup(m){
@@ -1810,7 +1839,7 @@ function setLang(l,btn){
 }
 
 /* ─── INIT ─── */
-renderMockups(mockups,'mainGrid');
+loadMockupsFromDatabase();
 
 const emailModalInputEl = document.getElementById('emailModalInput');
 if(emailModalInputEl){
