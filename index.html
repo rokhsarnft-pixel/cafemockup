@@ -91,6 +91,15 @@ nav{position:sticky;top:0;z-index:100;background:rgba(5,33,63,0.55);
   font-size:.8rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;
   font-family:'Plus Jakarta Sans','Vazirmatn',sans-serif;transition:background .2s;}
 .btn-crypto:hover{background:var(--amber2);}
+.btn-login{
+  background:var(--w08);border:1px solid var(--w20);color:var(--w85);
+  padding:6px 13px;border-radius:8px;font-size:.78rem;font-weight:600;
+  display:flex;align-items:center;gap:5px;cursor:pointer;transition:all .2s;
+  font-family:'Plus Jakarta Sans','Vazirmatn',sans-serif;
+}
+.btn-login:hover{background:var(--w12);border-color:var(--w40);}
+.btn-login.logged-in{border-color:rgba(93,202,165,.4);color:#5DCAA5;}
+.btn-login i{font-size:14px;}
 .hamburger-btn{display:none;background:none;border:none;color:var(--w);
   width:34px;height:34px;align-items:center;justify-content:center;border-radius:8px;cursor:pointer;}
 .hamburger-btn i{font-size:20px;}
@@ -434,7 +443,7 @@ body.ltr .lesson-section ul{padding-right:0;padding-left:1.2rem;}
   border-radius:16px;overflow:hidden;background:var(--w08);border:1px solid var(--w12);
   aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;
 }
-.md-preview img{width:100%;height:100%;object-fit:cover;}
+.md-preview img{width:100%;height:100%;object-fit:contain;background:rgba(255,255,255,.04);}
 .md-preview i{font-size:4rem;color:var(--w40);}
 .md-info h1{font-size:1.5rem;font-weight:700;color:var(--w);margin-bottom:.5rem;}
 .md-cat-badge{
@@ -555,9 +564,10 @@ footer p{font-size:.73rem;color:var(--w40);}
 body.ltr{direction:ltr;}
 body.ltr .about-pull{border-right:none;border-left:3px solid var(--amber);border-radius:8px 0 0 8px;}
 body.ltr .about-l{border-left:none;border-right:1px solid var(--w08);}
-body.ltr .search-bar{padding:6px 20px 6px 8px;}
-body.ltr .search-bar i.si{margin-left:0;margin-right:10px;}
-body.ltr .search-bar input{direction:ltr;}
+body.ltr .search-bar{padding:6px 20px 6px 8px;flex-direction:row;}
+body.ltr .search-bar i.si{margin-left:0;margin-right:10px;order:0;}
+body.ltr .search-bar input{direction:ltr;order:1;}
+body.ltr .search-bar .search-go{order:2;}
 </style>
 </head>
 <body class="ltr">
@@ -566,7 +576,7 @@ body.ltr .search-bar input{direction:ltr;}
 
 <div id="app">
 <nav>
-  <div class="logo"><svg class="logo-svg" id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="-11.86 234.00 645.76 112.00"><defs><style>.cls-1{fill:#29abe2;}.cls-2{fill:#e90e8b;}.cls-3{fill:#fcee1f;}.cls-4{fill:#fff;}</style></defs><rect class="cls-1" x="281.94" y="252.65" width="10.68" height="10.68"/><rect class="cls-2" x="271.26" y="263.33" width="10.68" height="10.68"/><rect class="cls-3" x="271.26" y="241.97" width="10.68" height="10.68"/><rect class="cls-4" x="283.21" y="253.92" width="10.68" height="10.68"/><rect class="cls-4" x="272.53" y="264.6" width="10.68" height="10.68"/><rect class="cls-4" x="272.53" y="243.24" width="10.68" height="10.68"/><polygon class="cls-4" points="315.24 296.63 325.92 296.63 325.92 285.95 315.24 285.95 304.56 285.95 293.88 285.95 283.21 285.95 272.53 285.95 261.85 285.95 251.17 285.95 251.17 296.63 251.17 307.31 251.17 317.99 261.85 317.99 261.85 328.67 272.53 328.67 272.53 339.34 283.21 339.34 293.88 339.34 293.88 328.67 304.56 328.67 304.56 317.99 315.24 317.99 315.24 307.31 315.24 296.63"/><polygon class="cls-4" points="325.92 296.63 325.92 307.31 325.92 317.99 336.6 317.99 336.6 307.31 336.6 296.63 325.92 296.63"/><rect class="cls-4" x="315.24" y="317.99" width="10.68" height="10.68"/><rect class="cls-4" x="240.49" y="285.95" width="10.68" height="10.68"/><path class="cls-4" d="M376.86,318.07H361.28a5.87,5.87,0,0,1-5.86-5.87V300.49a5.87,5.87,0,0,1,5.86-5.87h15.58v3.76H361.28a2.11,2.11,0,0,0-2.11,2.11V312.2a2.12,2.12,0,0,0,2.11,2.12h15.58Z"/><path class="cls-4" d="M594.83,318H583.12a5.87,5.87,0,0,1-5.86-5.86V294.62H581v17.52a2.11,2.11,0,0,0,2.11,2.11h11.71a2.12,2.12,0,0,0,2.12-2.11V294.62h3.75v17.52A5.87,5.87,0,0,1,594.83,318Z"/><path class="cls-4" d="M548.31,318.07H532.73a5.87,5.87,0,0,1-5.86-5.87V300.49a5.87,5.87,0,0,1,5.86-5.87h15.58v3.76H532.73a2.11,2.11,0,0,0-2.11,2.11V312.2a2.12,2.12,0,0,0,2.11,2.12h15.58Z"/><polygon class="cls-4" points="573.5 318.07 568.05 318.07 552.89 307.9 554.98 304.79 569.19 314.31 573.5 314.31 573.5 318.07"/><rect class="cls-4" x="552.06" y="294.62" width="3.75" height="23.87"/><polygon class="cls-4" points="554.95 307.93 552.93 304.76 568.85 294.62 573.5 294.62 573.5 298.38 569.95 298.38 554.95 307.93"/><path class="cls-4" d="M517.26,318.07H505.67a5.87,5.87,0,0,1-5.87-5.87V300.49a5.87,5.87,0,0,1,5.87-5.87h11.59a5.87,5.87,0,0,1,5.86,5.87V312.2A5.87,5.87,0,0,1,517.26,318.07Zm-11.59-19.69a2.1,2.1,0,0,0-2.11,2.11V312.2a2.11,2.11,0,0,0,2.11,2.12h11.59a2.12,2.12,0,0,0,2.11-2.12V300.49a2.11,2.11,0,0,0-2.11-2.11Z"/><polygon class="cls-4" points="496.05 318.07 492.3 318.07 492.3 298.38 490.18 298.38 484.39 306.93 478.61 298.38 476.49 298.38 476.49 318.07 472.74 318.07 472.74 294.62 480.6 294.62 484.39 300.24 488.19 294.62 496.05 294.62 496.05 318.07"/><path class="cls-4" d="M459,318.07H435.65V300.49a5.87,5.87,0,0,1,5.87-5.87h11.59a5.87,5.87,0,0,1,5.86,5.87v8.72H439.41v5.11H459Zm-19.56-12.61h15.81v-5a2.11,2.11,0,0,0-2.11-2.11H441.52a2.1,2.1,0,0,0-2.11,2.11Z"/><path class="cls-4" d="M414.21,318.07h-3.75V300.49a5.87,5.87,0,0,1,5.87-5.87H431.9v3.76H416.33a2.11,2.11,0,0,0-2.12,2.11Z"/><path class="cls-4" d="M406.51,318.07h-2.65l-1.7-1.8-1.44,1.8H380.61V300.49a5.87,5.87,0,0,1,5.86-5.87h17.46v18.06l1.54,1.64h1Zm-22.15-3.75h14.57l1.25-1.56V298.38H386.47a2.11,2.11,0,0,0-2.11,2.11Z"/><rect class="cls-4" x="412.34" y="305.46" width="13.95" height="3.75"/><path class="cls-4" d="M608.2,318h-3.75V294.62H621.9a5.87,5.87,0,0,1,5.86,5.87v2.85a5.87,5.87,0,0,1-5.86,5.87H608.2Zm0-12.54h13.7a2.11,2.11,0,0,0,2.11-2.12v-2.85a2.1,2.1,0,0,0-2.11-2.11H608.2Z"/></svg></div>
+  <div class="logo" onclick="goPage('home',document.querySelectorAll('.nav-tab')[0])" style="cursor:pointer;" role="button"><svg class="logo-svg" id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="-11.86 234.00 645.76 112.00"><defs><style>.cls-1{fill:#29abe2;}.cls-2{fill:#e90e8b;}.cls-3{fill:#fcee1f;}.cls-4{fill:#fff;}</style></defs><rect class="cls-1" x="281.94" y="252.65" width="10.68" height="10.68"/><rect class="cls-2" x="271.26" y="263.33" width="10.68" height="10.68"/><rect class="cls-3" x="271.26" y="241.97" width="10.68" height="10.68"/><rect class="cls-4" x="283.21" y="253.92" width="10.68" height="10.68"/><rect class="cls-4" x="272.53" y="264.6" width="10.68" height="10.68"/><rect class="cls-4" x="272.53" y="243.24" width="10.68" height="10.68"/><polygon class="cls-4" points="315.24 296.63 325.92 296.63 325.92 285.95 315.24 285.95 304.56 285.95 293.88 285.95 283.21 285.95 272.53 285.95 261.85 285.95 251.17 285.95 251.17 296.63 251.17 307.31 251.17 317.99 261.85 317.99 261.85 328.67 272.53 328.67 272.53 339.34 283.21 339.34 293.88 339.34 293.88 328.67 304.56 328.67 304.56 317.99 315.24 317.99 315.24 307.31 315.24 296.63"/><polygon class="cls-4" points="325.92 296.63 325.92 307.31 325.92 317.99 336.6 317.99 336.6 307.31 336.6 296.63 325.92 296.63"/><rect class="cls-4" x="315.24" y="317.99" width="10.68" height="10.68"/><rect class="cls-4" x="240.49" y="285.95" width="10.68" height="10.68"/><path class="cls-4" d="M376.86,318.07H361.28a5.87,5.87,0,0,1-5.86-5.87V300.49a5.87,5.87,0,0,1,5.86-5.87h15.58v3.76H361.28a2.11,2.11,0,0,0-2.11,2.11V312.2a2.12,2.12,0,0,0,2.11,2.12h15.58Z"/><path class="cls-4" d="M594.83,318H583.12a5.87,5.87,0,0,1-5.86-5.86V294.62H581v17.52a2.11,2.11,0,0,0,2.11,2.11h11.71a2.12,2.12,0,0,0,2.12-2.11V294.62h3.75v17.52A5.87,5.87,0,0,1,594.83,318Z"/><path class="cls-4" d="M548.31,318.07H532.73a5.87,5.87,0,0,1-5.86-5.87V300.49a5.87,5.87,0,0,1,5.86-5.87h15.58v3.76H532.73a2.11,2.11,0,0,0-2.11,2.11V312.2a2.12,2.12,0,0,0,2.11,2.12h15.58Z"/><polygon class="cls-4" points="573.5 318.07 568.05 318.07 552.89 307.9 554.98 304.79 569.19 314.31 573.5 314.31 573.5 318.07"/><rect class="cls-4" x="552.06" y="294.62" width="3.75" height="23.87"/><polygon class="cls-4" points="554.95 307.93 552.93 304.76 568.85 294.62 573.5 294.62 573.5 298.38 569.95 298.38 554.95 307.93"/><path class="cls-4" d="M517.26,318.07H505.67a5.87,5.87,0,0,1-5.87-5.87V300.49a5.87,5.87,0,0,1,5.87-5.87h11.59a5.87,5.87,0,0,1,5.86,5.87V312.2A5.87,5.87,0,0,1,517.26,318.07Zm-11.59-19.69a2.1,2.1,0,0,0-2.11,2.11V312.2a2.11,2.11,0,0,0,2.11,2.12h11.59a2.12,2.12,0,0,0,2.11-2.12V300.49a2.11,2.11,0,0,0-2.11-2.11Z"/><polygon class="cls-4" points="496.05 318.07 492.3 318.07 492.3 298.38 490.18 298.38 484.39 306.93 478.61 298.38 476.49 298.38 476.49 318.07 472.74 318.07 472.74 294.62 480.6 294.62 484.39 300.24 488.19 294.62 496.05 294.62 496.05 318.07"/><path class="cls-4" d="M459,318.07H435.65V300.49a5.87,5.87,0,0,1,5.87-5.87h11.59a5.87,5.87,0,0,1,5.86,5.87v8.72H439.41v5.11H459Zm-19.56-12.61h15.81v-5a2.11,2.11,0,0,0-2.11-2.11H441.52a2.1,2.1,0,0,0-2.11,2.11Z"/><path class="cls-4" d="M414.21,318.07h-3.75V300.49a5.87,5.87,0,0,1,5.87-5.87H431.9v3.76H416.33a2.11,2.11,0,0,0-2.12,2.11Z"/><path class="cls-4" d="M406.51,318.07h-2.65l-1.7-1.8-1.44,1.8H380.61V300.49a5.87,5.87,0,0,1,5.86-5.87h17.46v18.06l1.54,1.64h1Zm-22.15-3.75h14.57l1.25-1.56V298.38H386.47a2.11,2.11,0,0,0-2.11,2.11Z"/><rect class="cls-4" x="412.34" y="305.46" width="13.95" height="3.75"/><path class="cls-4" d="M608.2,318h-3.75V294.62H621.9a5.87,5.87,0,0,1,5.86,5.87v2.85a5.87,5.87,0,0,1-5.86,5.87H608.2Zm0-12.54h13.7a2.11,2.11,0,0,0,2.11-2.12v-2.85a2.1,2.1,0,0,0-2.11-2.11H608.2Z"/></svg></div>
   <div class="nav-center">
     <button class="nav-tab active" onclick="goPage('home',this)" data-fa="خانه" data-en="Home">Home</button>
     <button class="nav-tab" onclick="goPage('gallery',this)" data-fa="موکاپ‌ها" data-en="Gallery">Gallery</button>
@@ -579,6 +589,10 @@ body.ltr .search-bar input{direction:ltr;}
       <button class="lang-btn" onclick="setLang('fa',this)">FA</button>
       <button class="lang-btn active" onclick="setLang('en',this)">EN</button>
     </div>
+    <button class="btn-login" id="navLoginBtn" onclick="handleNavLoginClick()">
+      <i class="ti ti-user-circle" id="navLoginIcon"></i>
+      <span id="navLoginLabel" data-fa="ورود" data-en="Login">Login</span>
+    </button>
     <button class="btn-crypto" onclick="setPaymentOrder(25,'Pro Espresso Plan - 1 Month');goPage('payment',null)">
       <i class="ti ti-currency-bitcoin"></i>
       <span data-fa="خرید" data-en="Buy">Buy</span>
@@ -1310,7 +1324,7 @@ function renderMockups(items,containerId){
     const key = registerMockup(m);
     return `
     <div class="m-card" style="animation-delay:${i*.04}s">
-      <div class="m-thumb" style="${m.image?`background-image:url('${m.image}');background-size:cover;background-position:center;`:`background:rgba(10,40,80,${.3+i*.03})`}" onclick="openMockupDetail('${key}')" role="button">
+      <div class="m-thumb" style="${m.image?`background-image:url('${m.image}');background-size:contain;background-repeat:no-repeat;background-position:center;background-color:rgba(255,255,255,.04);`:`background:rgba(10,40,80,${.3+i*.03})`}" onclick="openMockupDetail('${key}')" role="button">
         ${m.image ? '' : `<i class="ti ${m.icon}"></i>`}
         <span class="m-badge ${m.free?'b-free':'b-pro'}">${m.free?(lang==='fa'?'رایگان':'Free'):'Pro'}</span>
       </div>
@@ -1414,6 +1428,7 @@ function submitEmailModal(){
 
   saveEmail(email);
   document.getElementById('emailModalOverlay').style.display = 'none';
+  updateNavLoginButton();
   const action = pendingEmailAction;
   pendingEmailAction = null;
   if(action) action(email);
@@ -1426,6 +1441,43 @@ function requireEmail(action){
     action(existing);
   } else {
     openEmailModal(action);
+  }
+}
+
+// Top-nav Login/Account button: shows current state and lets the user log in, change email, or log out
+function updateNavLoginButton(){
+  const btn = document.getElementById('navLoginBtn');
+  const icon = document.getElementById('navLoginIcon');
+  const label = document.getElementById('navLoginLabel');
+  if(!btn) return;
+  const email = getSavedEmail();
+  if(email && isValidEmail(email)){
+    btn.classList.add('logged-in');
+    icon.className = 'ti ti-user-check';
+    label.textContent = email.split('@')[0];
+    label.dataset.fa = email.split('@')[0];
+    label.dataset.en = email.split('@')[0];
+  } else {
+    btn.classList.remove('logged-in');
+    icon.className = 'ti ti-user-circle';
+    label.textContent = lang === 'fa' ? 'ورود' : 'Login';
+    label.dataset.fa = 'ورود';
+    label.dataset.en = 'Login';
+  }
+}
+
+function handleNavLoginClick(){
+  const email = getSavedEmail();
+  if(email && isValidEmail(email)){
+    const msg = lang === 'fa'
+      ? `وارد شده با: ${email}\n\nآیا می‌خواهید خارج شوید؟`
+      : `Logged in as: ${email}\n\nDo you want to log out?`;
+    if(confirm(msg)){
+      try { localStorage.removeItem('mc_user_email'); } catch(e) {}
+      updateNavLoginButton();
+    }
+  } else {
+    openEmailModal(() => updateNavLoginButton());
   }
 }
 
@@ -1840,6 +1892,7 @@ function setLang(l,btn){
 
 /* ─── INIT ─── */
 loadMockupsFromDatabase();
+updateNavLoginButton();
 
 const emailModalInputEl = document.getElementById('emailModalInput');
 if(emailModalInputEl){
