@@ -859,6 +859,10 @@ body.ltr .search-bar .search-go{order:2;margin-left:4px;margin-right:0;}
           <i class="ti ti-info-circle"></i>
           <span data-fa="اگر این صفحه را بستی، نگران نباش — دوباره روی دکمه‌ی «خرید» همین موکاپ بزن و وضعیت پرداختت همینجا ادامه پیدا می‌کند." data-en="If you closed this page, don't worry — just click Buy on this same item again and your payment status will resume here.">If you closed this page, don't worry — just click Buy on this same item again and your payment status will resume here.</span>
         </div>
+        <button onclick="cancelPaymentAndGoBack()" style="margin-top:1rem;width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.6);padding:11px;border-radius:10px;font-size:.85rem;cursor:pointer;font-family:inherit;">
+          <i class="ti ti-arrow-left" style="margin-left:5px;"></i>
+          <span data-fa="تغییر ارز / بازگشت" data-en="Change currency / Go back">Change currency / Go back</span>
+        </button>
       </div>
 
       <!-- STEP 3: success -->
@@ -1494,6 +1498,9 @@ function handleBuyMockup(price, name, downloadUrl){
     return;
   }
   requireEmail(() => {
+    // Clear any previous pending payment so currency selection always shows first
+    clearPendingPayment();
+    if(paymentPollInterval){ clearInterval(paymentPollInterval); paymentPollInterval = null; }
     // Store the pending download so we can release it after payment confirms
     pendingDownloadUrl = downloadUrl;
     setPaymentOrder(parseFloat(price), name);
@@ -1545,6 +1552,12 @@ function goPage(id,btn,skipHistory){
   document.getElementById('searchResults').classList.remove('show');
   document.getElementById('searchInput').value='';
   window.scrollTo(0,0);
+
+  /* When leaving payment page, stop polling (will resume if user comes back) */
+  if(id !== 'payment' && paymentPollInterval){
+    clearInterval(paymentPollInterval);
+    paymentPollInterval = null;
+  }
 
   /* Reset payment flow UI to step 1 whenever the payment page is opened, then check for a pending payment to resume */
   if(id === 'payment'){
@@ -1676,6 +1689,22 @@ function savePendingPayment(paymentId, downloadUrl, amount, description) {
 }
 function clearPendingPayment() {
   try { localStorage.removeItem('mc_pending_payment'); } catch (e) {}
+}
+
+function cancelPaymentAndGoBack() {
+  // Stop polling
+  if (paymentPollInterval) { clearInterval(paymentPollInterval); paymentPollInterval = null; }
+  // Clear saved pending payment so next visit starts fresh
+  clearPendingPayment();
+  // Reset UI back to step 1 (currency selection)
+  document.getElementById('payStepAddress').style.display = 'none';
+  document.getElementById('payStepSuccess').style.display = 'none';
+  document.getElementById('payStepChoose').style.display = 'block';
+  // Reset button label
+  const lbl = document.getElementById('payLbl');
+  if (lbl) lbl.textContent = lang === 'fa' ? 'پرداخت با ' + (document.getElementById('payLbl').dataset.currency || '') : 'Pay with ...';
+  const errorBox = document.getElementById('payError');
+  if (errorBox) { errorBox.textContent = ''; errorBox.style.display = 'none'; }
 }
 function loadPendingPayment() {
   try {
