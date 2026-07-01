@@ -119,9 +119,9 @@ nav{position:sticky;top:0;z-index:100;background:rgba(5,33,63,0.55);
   nav{padding:0 1rem;gap:.5rem;}
   .logo-svg{height:32px;}
   .nav-center{display:none;}
-  .hamburger-btn{display:flex;order:2;}
+  .hamburger-btn{display:flex;order:1;}
+  .logo{order:2;flex:1;display:flex;justify-content:center;}
   .nav-right{order:3;margin-right:0;}
-  .logo{order:1;flex:1;}
 }
 
 /* ── PAGES ── */
@@ -564,10 +564,10 @@ footer p{font-size:.73rem;color:var(--w40);}
 body.ltr{direction:ltr;}
 body.ltr .about-pull{border-right:none;border-left:3px solid var(--amber);border-radius:8px 0 0 8px;}
 body.ltr .about-l{border-left:none;border-right:1px solid var(--w08);}
-body.ltr .search-bar{padding:6px 20px 6px 8px;flex-direction:row;}
+body.ltr .search-bar{padding:6px 8px 6px 20px;flex-direction:row;}
 body.ltr .search-bar i.si{margin-left:0;margin-right:10px;order:0;}
 body.ltr .search-bar input{direction:ltr;order:1;}
-body.ltr .search-bar .search-go{order:2;}
+body.ltr .search-bar .search-go{order:2;margin-left:4px;margin-right:0;}
 </style>
 </head>
 <body class="ltr">
@@ -593,10 +593,7 @@ body.ltr .search-bar .search-go{order:2;}
       <i class="ti ti-user-circle" id="navLoginIcon"></i>
       <span id="navLoginLabel" data-fa="ورود" data-en="Login">Login</span>
     </button>
-    <button class="btn-crypto" onclick="setPaymentOrder(25,'Pro Espresso Plan - 1 Month');goPage('payment',null)">
-      <i class="ti ti-currency-bitcoin"></i>
-      <span data-fa="خرید" data-en="Buy">Buy</span>
-    </button>
+
   </div>
   <button class="hamburger-btn" onclick="toggleMobileMenu()">
     <i class="ti ti-menu-2" id="hamburgerIcon"></i>
@@ -615,7 +612,7 @@ body.ltr .search-bar .search-go{order:2;}
   <div class="home-hero">
     <div class="eyebrow" style="animation-delay:.05s"><i class="ti ti-sparkles"></i><span data-fa="پلتفرم موکاپ حرفه‌ای" data-en="Professional Mockup Platform">Professional Mockup Platform</span></div>
     <h1 class="hero-h1" style="animation-delay:.1s"
-      data-fa="موکاپ‌های <em>پریمیوم</em><br>برای برندهای خلاق" data-en="Premium PSD Mockups<br>For <em>Creative Brands</em>">Premium PSD Mockups<br>For <em>Creative Brands</em><em>پریمیوم</em><br>برای برندهای خلاق
+      data-fa="موکاپ‌های <em>پریمیوم</em><br>برای برندهای خلاق" data-en="Premium PSD Mockups<br>For <em>Creative Brands</em>">Premium PSD Mockups<br>For <em>Creative Brands</em>
     </h1>
     <p class="hero-sub" style="animation-delay:.15s"
       data-fa="بیش از ۲۴۰ موکاپ حرفه‌ای آماده دانلود. پرداخت فوری با Bitcoin، Ethereum و USDT." data-en="Over 240 professional mockups ready to download. Pay instantly with Bitcoin, Ethereum or USDT.">Over 240 professional mockups ready to download. Pay instantly with Bitcoin, Ethereum or USDT.</p>
@@ -1285,6 +1282,7 @@ let lang='en';
 // into the shape the rest of the site's rendering code expects (fa, en, free, price as "$25" string, image, downloadUrl)
 function mapDbMockup(row){
   return {
+    id: row.id,
     fa: row.name_fa,
     en: row.name_en,
     cat: row.category,
@@ -1312,7 +1310,8 @@ async function loadMockupsFromDatabase(){
 // Registry so any rendered mockup card (from gallery, search, or home) can be looked up by name for the detail page
 const mockupRegistry = {};
 function registerMockup(m){
-  const key = m.en.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  // Use the database id when available (guaranteed unique). Fall back to name only for mockups without an id.
+  const key = (m.id !== undefined && m.id !== null) ? 'id-' + m.id : m.en.toLowerCase().replace(/[^a-z0-9]+/g, '-');
   mockupRegistry[key] = m;
   return key;
 }
@@ -1885,7 +1884,7 @@ function setLang(l,btn){
   if(currentLessonNum){
     openLesson(currentLessonNum);
   }
-  if(currentMockupKey){
+  if(currentMockupKey && document.getElementById('pg-mockup-detail') && document.getElementById('pg-mockup-detail').classList.contains('active')){
     openMockupDetail(currentMockupKey);
   }
 }
