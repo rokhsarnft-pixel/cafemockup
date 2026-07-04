@@ -50,78 +50,84 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 :root{
-  --sky0:#05213F;--sky1:#0A4070;--sky2:#1A6FA8;--sky3:#4A9FD4;--sky4:#8AC9EC;--sky5:#C5E8F7;--sky6:#EAF6FD;
+  --bone:#F7F4EE;--bone2:#EFEAE0;--ink:#1C1B18;
+  --blue0:#0F2E5C;--blue1:#1653A6;--blue2:#2E73D6;--blue3:#4E8FEA;--blue4:#8FB8F2;--blue5:#D3E3FA;
   --amber:#C07840;--amber2:#D9924E;
-  --glass:rgba(255,255,255,0.13);--glass-b:rgba(255,255,255,0.28);
-  --w:rgba(255,255,255,1);--w85:rgba(255,255,255,0.85);--w65:rgba(255,255,255,0.65);
-  --w40:rgba(255,255,255,0.4);--w20:rgba(255,255,255,0.2);--w12:rgba(255,255,255,0.12);--w08:rgba(255,255,255,0.08);
+  --glass:rgba(28,27,24,0.05);--glass-b:rgba(28,27,24,0.10);
+  --w:rgba(28,27,24,1);--w85:rgba(28,27,24,0.82);--w65:rgba(28,27,24,0.62);
+  --w40:rgba(28,27,24,0.38);--w20:rgba(28,27,24,0.16);--w12:rgba(28,27,24,0.09);--w08:rgba(28,27,24,0.05);
+  --onblue:rgba(255,255,255,1);--onblue85:rgba(255,255,255,0.85);--onblue65:rgba(255,255,255,0.65);
 }
-html,body{min-height:100vh;font-family:'Plus Jakarta Sans','Vazirmatn',sans-serif;overflow-x:hidden;background:#05213F;}
+html,body{min-height:100vh;font-family:'Plus Jakarta Sans','Vazirmatn',sans-serif;overflow-x:hidden;background:var(--bone);}
 
-/* ── SKY ── */
-#sky{position:fixed;inset:0;z-index:0;
-  background:linear-gradient(180deg,var(--sky0) 0%,var(--sky1) 20%,var(--sky2) 45%,var(--sky3) 65%,var(--sky4) 80%,var(--sky5) 92%,var(--sky6) 100%);}
+/* ── BACKGROUND ── */
+#sky{position:fixed;inset:0;z-index:0;background:var(--bone);}
 
 /* ── WRAPPER ── */
 #app{position:relative;z-index:10;min-height:100vh;display:flex;flex-direction:column;}
 
 /* ── NAV ── */
-nav{position:sticky;top:0;z-index:100;background:rgba(5,33,63,0.55);
+nav{position:sticky;top:0;z-index:100;background:rgba(247,244,238,0.85);
   backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
   border-bottom:1px solid var(--w12);padding:0 2rem;height:68px;
-  display:flex;align-items:center;gap:1rem;}
+  display:flex;align-items:center;justify-content:space-between;gap:1rem;}
 .logo{font-family:'Plus Jakarta Sans',sans-serif;font-size:1.15rem;font-weight:700;color:var(--w);
-  display:flex;align-items:center;gap:7px;letter-spacing:-.01em;white-space:nowrap;}
+  display:flex;align-items:center;gap:7px;letter-spacing:-.01em;white-space:nowrap;order:1;}
 .logo i{color:rgba(192,120,64,.9);font-size:1rem;}
 .logo span{opacity:.75;font-weight:400;}
-.logo-svg{height:42px;width:auto;display:block;}
+.logo-svg{height:40px;width:auto;display:block;}
 .f-logo-svg{height:24px;width:auto;display:block;}
-.nav-center{flex:1;display:flex;align-items:center;justify-content:center;gap:4px;}
-.nav-tab{background:none;border:none;padding:6px 14px;font-size:.82rem;font-weight:500;
-  color:var(--w65);border-radius:8px;cursor:pointer;transition:all .18s;
-  font-family:'Plus Jakarta Sans','Vazirmatn',sans-serif;}
-.nav-tab:hover{background:var(--w12);color:var(--w);}
-.nav-tab.active{background:var(--w20);color:var(--w);}
-.nav-right{display:flex;align-items:center;gap:.5rem;}
-.lang-toggle{display:flex;background:rgba(0,0,0,.3);border-radius:8px;overflow:hidden;border:1px solid var(--w20);}
-.lang-btn{background:none;border:none;padding:5px 10px;font-size:.72rem;font-weight:600;
+.hamburger-btn{display:flex;order:2;background:none;border:none;color:var(--w);
+  width:38px;height:38px;align-items:center;justify-content:center;border-radius:8px;cursor:pointer;}
+.hamburger-btn i{font-size:22px;}
+.hamburger-btn:hover{background:var(--w12);}
+
+/* ── FULL-SCREEN MENU OVERLAY ── */
+.menu-overlay{
+  position:fixed;inset:0;z-index:400;background:rgba(247,244,238,0.98);
+  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  gap:.5rem;
+}
+.menu-overlay.open{display:flex;}
+.menu-overlay-close{
+  position:absolute;top:18px;right:24px;background:var(--w08);border:1px solid var(--w20);
+  width:42px;height:42px;border-radius:50%;color:var(--w);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:all .2s;
+}
+body.ltr .menu-overlay-close{right:auto;left:24px;}
+.menu-overlay-close:hover{background:var(--w12);transform:rotate(90deg);}
+.menu-overlay-close i{font-size:20px;}
+.menu-overlay-link{
+  background:none;border:none;font-size:clamp(1.6rem,5vw,2.6rem);font-weight:700;
+  color:var(--w);padding:.4rem 1rem;cursor:pointer;transition:all .2s;
+  font-family:'Plus Jakarta Sans','Vazirmatn',sans-serif;letter-spacing:-.01em;
+}
+.menu-overlay-link:hover,.menu-overlay-link.active{color:var(--blue2);transform:translateY(-2px);}
+.menu-overlay-actions{display:flex;gap:14px;align-items:center;margin-top:1.75rem;}
+.lang-toggle{display:flex;background:var(--w08);border-radius:8px;overflow:hidden;border:1px solid var(--w20);}
+.lang-btn{background:none;border:none;padding:7px 14px;font-size:.78rem;font-weight:600;
   color:var(--w65);cursor:pointer;transition:all .18s;font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:.04em;}
-.lang-btn.active{background:var(--w20);color:var(--w);}
-.btn-crypto{background:var(--amber);border:none;color:#fff;padding:7px 15px;border-radius:8px;
+.lang-btn.active{background:var(--blue2);color:#fff;}
+.btn-crypto{background:var(--blue2);border:none;color:#fff;padding:7px 15px;border-radius:8px;
   font-size:.8rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;
   font-family:'Plus Jakarta Sans','Vazirmatn',sans-serif;transition:background .2s;}
-.btn-crypto:hover{background:var(--amber2);}
+.btn-crypto:hover{background:var(--blue1);}
 .btn-login{
   background:var(--w08);border:1px solid var(--w20);color:var(--w85);
-  padding:6px 13px;border-radius:8px;font-size:.78rem;font-weight:600;
+  padding:8px 16px;border-radius:8px;font-size:.85rem;font-weight:600;
   display:flex;align-items:center;gap:5px;cursor:pointer;transition:all .2s;
   font-family:'Plus Jakarta Sans','Vazirmatn',sans-serif;
 }
 .btn-login:hover{background:var(--w12);border-color:var(--w40);}
-.btn-login.logged-in{border-color:rgba(93,202,165,.4);color:#5DCAA5;}
+.btn-login.logged-in{border-color:rgba(22,83,166,.4);color:var(--blue1);}
 .btn-login i{font-size:14px;}
-.hamburger-btn{display:none;background:none;border:none;color:var(--w);
-  width:34px;height:34px;align-items:center;justify-content:center;border-radius:8px;cursor:pointer;}
-.hamburger-btn i{font-size:20px;}
-.hamburger-btn:hover{background:var(--w12);}
-.mobile-dropdown{
-  display:none;position:absolute;top:68px;left:0;right:0;
-  background:rgba(5,33,63,0.97);backdrop-filter:blur(20px);
-  border-bottom:1px solid var(--w12);
-  flex-direction:column;padding:.5rem;gap:2px;
-  box-shadow:0 12px 30px rgba(0,0,0,.3);
-}
-.mobile-dropdown.open{display:flex;}
-.mobile-dropdown .nav-tab{text-align:right;width:100%;padding:11px 14px;font-size:.9rem;}
+.menu-overlay-foot{position:absolute;bottom:28px;display:flex;gap:1rem;align-items:center;color:var(--w40);font-size:.78rem;}
 
 /* ── MOBILE NAV ── */
 @media(max-width:760px){
   nav{padding:0 1rem;gap:.5rem;}
   .logo-svg{height:32px;}
-  .nav-center{display:none;}
-  .hamburger-btn{display:flex;order:1;}
-  .logo{order:2;flex:1;display:flex;justify-content:center;}
-  .nav-right{order:3;margin-right:0;}
 }
 
 /* ── PAGES ── */
@@ -130,159 +136,101 @@ nav{position:sticky;top:0;z-index:100;background:rgba(5,33,63,0.55);
 @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 .page.active>*{animation:rise .4s ease both;}
 
-/* ══ HOME ══ */
-.home-hero{display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:5rem 1.5rem 3rem;text-align:center;flex:1;}
-.eyebrow{display:inline-flex;align-items:center;gap:6px;
-  background:var(--w12);border:1px solid var(--w20);color:var(--w65);
-  font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
-  padding:5px 14px;border-radius:20px;margin-bottom:1.5rem;}
-.eyebrow i{font-size:13px;}
-.hero-h1{font-size:clamp(2.4rem,6vw,4rem);font-weight:700;line-height:1.08;
-  color:var(--w);margin-bottom:1rem;letter-spacing:-.02em;}
-.hero-h1 em{font-style:normal;color:var(--sky4);}
-.hero-sub{font-size:.97rem;color:var(--w65);line-height:1.7;max-width:480px;margin-bottom:2rem;font-weight:400;}
-
-/* CTA BUTTONS */
-.hero-ctas{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:1.8rem;}
-.cta-primary{background:var(--w);color:var(--sky1);border:none;padding:14px 32px;border-radius:12px;
-  font-family:'Plus Jakarta Sans','Vazirmatn',sans-serif;font-size:1rem;font-weight:700;
-  display:flex;align-items:center;gap:8px;cursor:pointer;transition:all .2s;
-  box-shadow:0 4px 20px rgba(0,0,0,.2);}
-.cta-primary:hover{background:var(--sky5);transform:translateY(-2px);}
-.cta-primary i{font-size:18px;}
-.cta-secondary{background:var(--glass);backdrop-filter:blur(12px);color:var(--w85);
-  border:1.5px solid var(--glass-b);padding:13px 28px;border-radius:12px;
-  font-family:'Plus Jakarta Sans','Vazirmatn',sans-serif;font-size:1rem;font-weight:600;
-  display:flex;align-items:center;gap:8px;cursor:pointer;transition:all .2s;}
-.cta-secondary:hover{background:var(--w20);border-color:var(--w40);transform:translateY(-2px);}
-
-/* CRYPTO BADGE */
-.crypto-badge{display:inline-flex;align-items:center;gap:8px;
-  background:rgba(0,0,0,.25);backdrop-filter:blur(12px);
-  border:1px solid rgba(255,255,255,.18);color:rgba(255,255,255,.7);
-  font-size:.8rem;font-weight:500;padding:8px 18px;border-radius:30px;margin-bottom:2rem;}
-.cb-dot{width:7px;height:7px;border-radius:50%;background:#4ade80;box-shadow:0 0 6px #4ade80;flex-shrink:0;}
-.cb-sep{opacity:.35;margin:0 2px;}
-.cb-coins{display:flex;align-items:center;gap:5px;font-size:.78rem;opacity:.85;}
-.cb-coins i{font-size:13px;}
+/* ══ HOME (merged with Gallery) ══ */
+.home-topbar{padding:1.75rem 2rem 1.25rem;display:flex;flex-direction:column;align-items:center;gap:1.1rem;}
 
 /* SEARCH */
-.search-wrap{width:100%;max-width:580px;position:relative;margin-bottom:2.5rem;}
-.search-bar{display:flex;align-items:center;background:var(--glass);
-  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-  border:1.5px solid var(--glass-b);border-radius:50px;padding:6px 8px 6px 20px;
-  box-shadow:0 8px 32px rgba(5,33,63,.35);transition:border-color .25s,box-shadow .25s;}
-.search-bar:focus-within{border-color:rgba(255,255,255,.55);
-  box-shadow:0 8px 40px rgba(5,33,63,.45),0 0 0 4px var(--w08);}
+.search-wrap{width:100%;max-width:580px;position:relative;}
+.search-bar{display:flex;align-items:center;background:#fff;
+  border:1.5px solid var(--w20);border-radius:50px;padding:6px 8px 6px 20px;
+  box-shadow:0 4px 20px rgba(28,27,24,.06);transition:border-color .25s,box-shadow .25s;}
+.search-bar:focus-within{border-color:var(--blue2);
+  box-shadow:0 4px 24px rgba(28,27,24,.08),0 0 0 4px var(--blue5);}
 .search-bar i.si{font-size:17px;color:var(--w40);margin-left:10px;flex-shrink:0;}
 .search-bar input{flex:1;background:none;border:none;outline:none;
   font-family:'Plus Jakarta Sans','Vazirmatn',sans-serif;font-size:.92rem;color:var(--w);padding:10px 8px;}
 .search-bar input::placeholder{color:var(--w40);}
-.search-go{background:var(--w);border:none;width:40px;height:40px;border-radius:50%;
+.search-go{background:var(--blue2);border:none;width:40px;height:40px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all .2s;}
-.search-go:hover{background:var(--sky5);transform:scale(1.05);}
-.search-go i{font-size:17px;color:var(--sky1);}
+.search-go:hover{background:var(--blue1);transform:scale(1.05);}
+.search-go i{font-size:17px;color:#fff;}
 .search-dd{position:absolute;top:calc(100% + 8px);inset-inline:0;
-  background:rgba(5,33,63,.95);backdrop-filter:blur(20px);
+  background:#fff;
   border:1px solid var(--w20);border-radius:14px;overflow:hidden;
-  display:none;z-index:200;box-shadow:0 20px 60px rgba(0,0,0,.4);}
+  display:none;z-index:200;box-shadow:0 20px 60px rgba(28,27,24,.14);}
 .search-dd.show{display:block;animation:rise .2s ease;}
 .sd-row{display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;
   transition:background .15s;font-size:.85rem;color:var(--w65);}
 .sd-row:hover{background:var(--w08);}
-.sd-row i{font-size:15px;color:var(--sky4);}
-
-/* STATS */
-.hero-stats{display:flex;gap:1.5rem;justify-content:center;flex-wrap:wrap;padding-bottom:3rem;}
-.h-stat{display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--w40);}
-.h-stat strong{color:rgba(255,255,255,.75);font-weight:600;}
-.h-stat i{font-size:14px;color:rgba(255,255,255,.3);}
-
-/* ── HOME: CATEGORIES PREVIEW ── */
-.home-categories{padding:1rem 2rem 2.5rem;max-width:1000px;margin:0 auto;}
-.hc-head{text-align:center;margin-bottom:1.5rem;}
-.hc-head h2{font-size:1.25rem;font-weight:700;color:var(--w);}
-.hc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
-.hc-card{
-  background:var(--w08);border:1px solid var(--w12);border-radius:14px;
-  padding:1.5rem 1rem;text-align:center;cursor:pointer;transition:all .2s;
-}
-.hc-card:hover{background:var(--w12);border-color:var(--amber2);transform:translateY(-2px);}
-.hc-icon{
-  width:48px;height:48px;margin:0 auto .75rem;border-radius:12px;
-  background:rgba(192,120,64,.15);display:flex;align-items:center;justify-content:center;
-}
-.hc-icon i{font-size:1.4rem;color:var(--amber2);}
-.hc-name{font-size:.9rem;font-weight:600;color:var(--w);margin-bottom:.25rem;}
-.hc-count{font-size:.72rem;color:var(--w40);}
+.sd-row i{font-size:15px;color:var(--blue2);}
 
 /* ── HOME: WHY MOCKUPCAFE ── */
 .home-why{
   display:grid;grid-template-columns:repeat(3,1fr);gap:1px;
-  background:var(--w08);border-top:1px solid var(--w08);border-bottom:1px solid var(--w08);
+  background:var(--w08);border-top:1px solid var(--w08);border-bottom:1px solid var(--w08);margin-top:1rem;
 }
-.hw-item{background:rgba(5,33,63,.4);padding:2rem 1.5rem;text-align:center;}
+.hw-item{background:var(--bone2);padding:2rem 1.5rem;text-align:center;}
 .hw-icon{
   width:46px;height:46px;margin:0 auto 1rem;border-radius:50%;
-  background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;
+  background:var(--blue5);display:flex;align-items:center;justify-content:center;
 }
-.hw-icon i{font-size:1.3rem;color:var(--sky4);}
+.hw-icon i{font-size:1.3rem;color:var(--blue1);}
 .hw-title{font-size:.95rem;font-weight:700;color:var(--w);margin-bottom:.5rem;}
 .hw-text{font-size:.8rem;color:var(--w65);line-height:1.6;}
 
 @media(max-width:760px){
-  .hc-grid{grid-template-columns:repeat(2,1fr);}
   .home-why{grid-template-columns:1fr;}
 }
 
-/* ══ GALLERY ══ */
-.gallery-head{padding:2rem 2rem 1rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;}
-.gallery-head h2{font-size:1.3rem;font-weight:700;color:var(--w);}
-.filters{display:flex;gap:6px;flex-wrap:wrap;}
-.f-btn{background:var(--w12);border:1px solid var(--w20);color:var(--w65);
-  padding:5px 14px;border-radius:20px;font-size:.78rem;font-weight:500;cursor:pointer;transition:all .18s;
+/* ══ FILTERS + MOCKUP GRID (bigger cards) ══ */
+.filters{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;}
+.f-btn{background:#fff;border:1px solid var(--w20);color:var(--w65);
+  padding:6px 16px;border-radius:20px;font-size:.8rem;font-weight:500;cursor:pointer;transition:all .18s;
   font-family:'Plus Jakarta Sans','Vazirmatn',sans-serif;}
-.f-btn.active,.f-btn:hover{background:var(--w);color:var(--sky1);border-color:var(--w);}
-.mockup-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1px;background:var(--w12);border-top:1px solid var(--w12);}
-.m-card{background:rgba(5,33,63,.45);backdrop-filter:blur(12px);cursor:pointer;transition:background .2s;}
-.m-card:hover{background:rgba(5,33,63,.65);}
+.f-btn.active,.f-btn:hover{background:var(--blue2);color:#fff;border-color:var(--blue2);}
+.mockup-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(440px,1fr));gap:1px;background:var(--w12);border-top:1px solid var(--w12);margin-top:1.25rem;}
+.m-card{background:#fff;cursor:pointer;transition:all .2s;}
+.m-card:hover{background:var(--bone2);}
 .m-thumb{aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;position:relative;border-bottom:1px solid var(--w08);}
-.m-thumb i{font-size:2.5rem;color:var(--w40);}
-.m-badge{position:absolute;top:8px;right:8px;font-size:.6rem;font-weight:700;
-  padding:3px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:.05em;}
-.b-free{background:rgba(255,255,255,.18);color:var(--w);}
-.b-pro{background:rgba(192,120,64,.7);color:#fff;}
-.m-body{padding:.75rem 1rem;}
-.m-body h4{font-size:.85rem;font-weight:600;color:var(--w85);margin-bottom:2px;}
-.m-body p{font-size:.73rem;color:var(--w40);}
-.m-foot{padding:.6rem 1rem;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--w08);}
-.m-price{font-size:.95rem;font-weight:700;color:var(--w65);}
-.m-btn{background:var(--w20);border:none;color:var(--w);padding:5px 12px;border-radius:6px;
-  font-size:.73rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;transition:background .2s;
+.m-thumb i{font-size:5rem;color:var(--w40);}
+.m-badge{position:absolute;top:14px;right:14px;font-size:.7rem;font-weight:700;
+  padding:4px 12px;border-radius:6px;text-transform:uppercase;letter-spacing:.05em;}
+.b-free{background:var(--w);color:#fff;}
+.b-pro{background:var(--blue2);color:#fff;}
+.m-body{padding:1.25rem 1.5rem .5rem;}
+.m-body h4{font-size:1.15rem;font-weight:700;color:var(--w85);margin-bottom:4px;}
+.m-body p{font-size:.9rem;color:var(--w40);}
+.m-foot{padding:1rem 1.5rem 1.5rem;display:flex;justify-content:space-between;align-items:center;}
+.m-price{font-size:1.3rem;font-weight:700;color:var(--w65);}
+.m-btn{background:var(--blue2);border:none;color:#fff;padding:9px 20px;border-radius:8px;
+  font-size:.88rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .2s;
   font-family:'Plus Jakarta Sans','Vazirmatn',sans-serif;}
-.m-btn:hover{background:var(--amber);}
-.m-btn i{font-size:13px;}
+.m-btn:hover{background:var(--blue1);}
+.m-btn i{font-size:16px;}
+
+@media(max-width:760px){
+  .mockup-grid{grid-template-columns:1fr;}
+}
 
 /* ══ PRICING ══ */
 .pricing-head{padding:2.5rem 2rem 1.5rem;text-align:center;}
 .pricing-head h2{font-size:1.5rem;font-weight:700;color:var(--w);margin-bottom:.5rem;}
 .pricing-head p{font-size:.88rem;color:var(--w65);}
 .crypto-note{display:flex;align-items:center;justify-content:center;gap:.5rem;
-  padding:.7rem 1.5rem;background:rgba(192,120,64,.15);
-  border-top:1px solid rgba(192,120,64,.25);border-bottom:1px solid rgba(192,120,64,.25);
-  font-size:.8rem;color:rgba(217,146,78,.9);}
+  padding:.7rem 1.5rem;background:var(--blue5);
+  border-top:1px solid rgba(46,115,214,.25);border-bottom:1px solid rgba(46,115,214,.25);
+  font-size:.8rem;color:var(--blue1);}
 .crypto-note i{font-size:15px;}
 .coming-soon-wrap{
   max-width:480px;margin:2rem auto 1.5rem;padding:2rem 1.5rem;text-align:center;
-  background:rgba(255,255,255,.06);border:1px solid var(--w12);border-radius:16px;
+  background:#fff;border:1px solid var(--w12);border-radius:16px;
 }
 .coming-soon-icon{
   width:52px;height:52px;border-radius:50%;
-  background:rgba(192,120,64,.18);border:1px solid rgba(192,120,64,.35);
+  background:var(--blue5);border:1px solid rgba(46,115,214,.35);
   display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;
 }
-.coming-soon-icon i{font-size:1.5rem;color:var(--amber2);}
+.coming-soon-icon i{font-size:1.5rem;color:var(--blue1);}
 .coming-soon-wrap h3{font-size:1.05rem;font-weight:700;color:var(--w);margin-bottom:.6rem;}
 .coming-soon-wrap p{font-size:.85rem;color:var(--w65);line-height:1.7;margin-bottom:1.25rem;}
 
@@ -292,10 +240,10 @@ nav{position:sticky;top:0;z-index:100;background:rgba(5,33,63,0.55);
 
 .plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
   gap:1px;background:var(--w08);border-top:1px solid var(--w08);border-bottom:1px solid var(--w08);}
-.plan{background:rgba(5,33,63,.5);backdrop-filter:blur(12px);padding:2rem 1.5rem;}
-.plan.best{background:rgba(10,64,112,.6);}
+.plan{background:#fff;padding:2rem 1.5rem;}
+.plan.best{background:var(--blue5);}
 .plan-tag{font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
-  color:var(--amber2);display:flex;align-items:center;gap:5px;margin-bottom:.75rem;}
+  color:var(--blue2);display:flex;align-items:center;gap:5px;margin-bottom:.75rem;}
 .plan-tag i{font-size:13px;}
 .plan-name{font-size:1.3rem;font-weight:700;color:var(--w);margin-bottom:.3rem;}
 .plan-price{font-size:2.5rem;font-weight:700;color:var(--w);margin:.5rem 0;letter-spacing:-.02em;}
@@ -303,21 +251,21 @@ nav{position:sticky;top:0;z-index:100;background:rgba(5,33,63,0.55);
 .plan-price sub{font-size:.8rem;color:var(--w40);font-weight:400;}
 .plan-ul{list-style:none;margin:1rem 0 1.5rem;}
 .plan-ul li{font-size:.82rem;padding:5px 0;display:flex;align-items:center;gap:7px;color:var(--w65);}
-.plan-ul li i{font-size:14px;color:var(--amber2);}
+.plan-ul li i{font-size:14px;color:var(--blue2);}
 .plan-btn-outline{background:var(--w12);border:1px solid var(--w20);color:var(--w);width:100%;
   padding:10px;border-radius:8px;font-family:'Plus Jakarta Sans','Vazirmatn',sans-serif;
   font-size:.85rem;font-weight:600;cursor:pointer;transition:all .2s;}
 .plan-btn-outline:hover{background:var(--w20);}
-.plan-btn-solid{background:var(--amber);border:none;color:#fff;width:100%;padding:10px;border-radius:8px;
+.plan-btn-solid{background:var(--blue2);border:none;color:#fff;width:100%;padding:10px;border-radius:8px;
   font-family:'Plus Jakarta Sans','Vazirmatn',sans-serif;font-size:.85rem;font-weight:600;
   cursor:pointer;transition:background .2s;}
-.plan-btn-solid:hover{background:var(--amber2);}
+.plan-btn-solid:hover{background:var(--blue1);}
 
 /* ══ PAYMENT ══ */
 .pay-wrap{max-width:460px;margin:2.5rem auto;padding:0 1.5rem 3rem;}
 .pay-h{font-size:1.4rem;font-weight:700;color:var(--w);margin-bottom:.3rem;}
 .pay-sub{font-size:.82rem;color:var(--w65);margin-bottom:1.5rem;}
-.pay-box{background:rgba(5,33,63,.6);backdrop-filter:blur(20px);border:1px solid var(--w20);border-radius:16px;overflow:hidden;}
+.pay-box{background:#fff;border:1px solid var(--w20);border-radius:16px;overflow:hidden;box-shadow:0 8px 30px rgba(28,27,24,.06);}
 .pay-order{padding:1.25rem 1.5rem;background:var(--w08);border-bottom:1px solid var(--w12);}
 .pay-row{display:flex;justify-content:space-between;font-size:.85rem;color:var(--w65);padding:3px 0;}
 .pay-total{font-weight:700;font-size:1rem;color:var(--w);padding-top:8px;border-top:1px solid var(--w12);margin-top:6px;}
@@ -326,17 +274,17 @@ nav{position:sticky;top:0;z-index:100;background:rgba(5,33,63,0.55);
 .c-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1.5rem;}
 .c-opt{border:1.5px solid var(--w20);border-radius:10px;padding:10px 6px;text-align:center;
   cursor:pointer;transition:all .2s;background:var(--w08);}
-.c-opt:hover,.c-opt.sel{border-color:rgba(192,120,64,.7);background:rgba(192,120,64,.1);}
+.c-opt:hover,.c-opt.sel{border-color:var(--blue2);background:var(--blue5);}
 .c-opt i{font-size:1.35rem;color:var(--w65);display:block;margin-bottom:4px;}
 .c-opt span{font-size:.7rem;color:var(--w40);}
-.pay-btn{width:100%;background:var(--amber);border:none;color:#fff;padding:13px;border-radius:10px;
+.pay-btn{width:100%;background:var(--blue2);border:none;color:#fff;padding:13px;border-radius:10px;
   font-family:'Plus Jakarta Sans','Vazirmatn',sans-serif;font-size:.95rem;font-weight:700;
   display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;transition:background .2s;}
-.pay-btn:hover{background:var(--amber2);}
+.pay-btn:hover{background:var(--blue1);}
 .pay-btn i{font-size:17px;}
 .pay-sec{text-align:center;font-size:.72rem;color:var(--w40);margin-top:.75rem;
   display:flex;align-items:center;justify-content:center;gap:5px;}
-.pay-sec i{font-size:13px;color:rgba(192,120,64,.6);}
+.pay-sec i{font-size:13px;color:var(--blue2);}
 
 /* ── PAYMENT HOW-TO BOX ── */
 .pay-howto{
@@ -348,17 +296,17 @@ nav{position:sticky;top:0;z-index:100;background:rgba(5,33,63,0.55);
 .pay-howto-list li{font-size:.8rem;color:var(--w65);line-height:1.5;}
 .pay-persist-note{
   display:flex;align-items:flex-start;gap:8px;margin-top:1rem;
-  background:rgba(91,170,220,.08);border:1px solid rgba(91,170,220,.25);
+  background:var(--blue5);border:1px solid rgba(46,115,214,.25);
   border-radius:8px;padding:.7rem .9rem;
 }
-.pay-persist-note i{font-size:15px;color:var(--sky4);flex-shrink:0;margin-top:2px;}
+.pay-persist-note i{font-size:15px;color:var(--blue1);flex-shrink:0;margin-top:2px;}
 .pay-persist-note span{font-size:.75rem;color:var(--w65);line-height:1.6;}
 
 /* ── PAYMENT FLOW STEPS ── */
 .pay-error{
-  margin-top:1rem;padding:.85rem 1rem;background:rgba(220,80,70,.12);
-  border:1px solid rgba(220,80,70,.35);border-radius:10px;
-  color:#f5a8a0;font-size:.82rem;line-height:1.6;
+  margin-top:1rem;padding:.85rem 1rem;background:rgba(200,50,45,.08);
+  border:1px solid rgba(200,50,45,.3);border-radius:10px;
+  color:#a3352d;font-size:.82rem;line-height:1.6;
 }
 .pay-status-row{
   display:flex;align-items:center;justify-content:center;gap:8px;
@@ -366,7 +314,7 @@ nav{position:sticky;top:0;z-index:100;background:rgba(5,33,63,0.55);
 }
 .pay-spinner{
   width:14px;height:14px;border-radius:50%;
-  border:2px solid var(--w20);border-top-color:var(--amber2);
+  border:2px solid var(--w20);border-top-color:var(--blue2);
   animation:paySpin 0.8s linear infinite;
 }
 @keyframes paySpin{to{transform:rotate(360deg)}}
@@ -382,19 +330,23 @@ nav{position:sticky;top:0;z-index:100;background:rgba(5,33,63,0.55);
   padding:.75rem 1rem;text-align:center;word-break:break-all;
   cursor:pointer;transition:all .2s;margin-bottom:.4rem;
 }
-.pay-address-box:hover{background:var(--w12);border-color:var(--amber2);}
+.pay-address-box:hover{background:var(--w12);border-color:var(--blue2);}
 .pay-copy-hint{text-align:center;font-size:.7rem;color:var(--w40);margin-bottom:1rem;}
-.pay-success-icon{font-size:3rem;color:#5DCAA5;margin-bottom:1rem;}
+.pay-success-icon{font-size:3rem;color:#2E9E6B;margin-bottom:1rem;}
 .pay-success-title{font-size:1.1rem;font-weight:700;color:var(--w);margin-bottom:.5rem;}
 .pay-success-sub{font-size:.85rem;color:var(--w65);line-height:1.7;}
+.btn-gold{background:var(--blue2);border:none;color:#fff;padding:11px 24px;border-radius:10px;
+  font-family:'Plus Jakarta Sans','Vazirmatn',sans-serif;font-size:.9rem;font-weight:700;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;transition:background .2s;}
+.btn-gold:hover{background:var(--blue1);}
 
 /* ══ TUTORIALS ══ */
 .tut-head{padding:2rem 2rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;}
 .tut-head h2{font-size:1.3rem;font-weight:700;color:var(--w);}
 .tut-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
   gap:1px;background:var(--w08);border-top:1px solid var(--w08);}
-.t-card{background:rgba(5,33,63,.45);backdrop-filter:blur(12px);padding:1.5rem;cursor:pointer;transition:background .2s;}
-.t-card:hover{background:rgba(5,33,63,.65);}
+.t-card{background:#fff;padding:1.5rem;cursor:pointer;transition:background .2s;}
+.t-card:hover{background:var(--bone2);}
 
 /* ── LESSON DETAIL PAGE ── */
 .lesson-wrap{max-width:760px;margin:0 auto;padding:2rem 1.5rem 4rem;}
@@ -414,16 +366,16 @@ nav{position:sticky;top:0;z-index:100;background:rgba(5,33,63,0.55);
   font-size:1.05rem;font-weight:700;color:var(--w);margin-bottom:.75rem;
   display:flex;align-items:center;gap:8px;
 }
-.lesson-section h3 i{font-size:1.1rem;color:var(--amber2);}
+.lesson-section h3 i{font-size:1.1rem;color:var(--blue2);}
 .lesson-section p{font-size:.9rem;color:var(--w65);line-height:1.85;margin-bottom:.6rem;}
 .lesson-section ul{margin:.5rem 0 .5rem 0;padding-right:1.2rem;}
 body.ltr .lesson-section ul{padding-right:0;padding-left:1.2rem;}
 .lesson-section ul li{font-size:.88rem;color:var(--w65);line-height:1.8;margin-bottom:.4rem;}
 .lesson-tip{
-  background:rgba(192,120,64,.1);border:1px solid rgba(192,120,64,.25);
+  background:var(--blue5);border:1px solid rgba(46,115,214,.25);
   border-radius:10px;padding:1rem 1.25rem;display:flex;gap:10px;align-items:flex-start;
 }
-.lesson-tip i{font-size:1.1rem;color:var(--amber2);flex-shrink:0;margin-top:2px;}
+.lesson-tip i{font-size:1.1rem;color:var(--blue1);flex-shrink:0;margin-top:2px;}
 .lesson-tip p{font-size:.85rem;color:var(--w85);margin:0;line-height:1.7;}
 .lesson-nav{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem;padding-top:1.5rem;border-top:1px solid var(--w12);}
 .lesson-nav-btn{
@@ -443,7 +395,7 @@ body.ltr .lesson-section ul{padding-right:0;padding-left:1.2rem;}
   border-radius:16px;overflow:hidden;background:var(--w08);border:1px solid var(--w12);
   aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;
 }
-.md-preview img{width:100%;height:100%;object-fit:contain;background:rgba(255,255,255,.04);}
+.md-preview img{width:100%;height:100%;object-fit:contain;background:var(--bone2);}
 .md-preview i{font-size:4rem;color:var(--w40);}
 .md-info h1{font-size:1.5rem;font-weight:700;color:var(--w);margin-bottom:.5rem;}
 .md-cat-badge{
@@ -452,27 +404,29 @@ body.ltr .lesson-section ul{padding-right:0;padding-left:1.2rem;}
 }
 .md-price-row{display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;}
 .md-price{font-size:1.8rem;font-weight:700;color:var(--w);}
-.md-free-tag{background:rgba(93,202,165,.18);color:#5DCAA5;font-size:.78rem;font-weight:700;padding:4px 12px;border-radius:8px;}
+.md-free-tag{background:rgba(46,158,107,.15);color:#2E9E6B;font-size:.78rem;font-weight:700;padding:4px 12px;border-radius:8px;}
 .md-buy-btn{
-  width:100%;background:var(--amber);border:none;color:#fff;padding:14px;border-radius:10px;
+  width:100%;background:var(--blue2);border:none;color:#fff;padding:14px;border-radius:10px;
   font-size:1rem;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;
   cursor:pointer;transition:background .2s;margin-bottom:1.5rem;
 }
-.md-buy-btn:hover{background:var(--amber2);}
+.md-buy-btn:hover{background:var(--blue1);}
 .md-section{margin-bottom:1.5rem;}
 .md-section h3{font-size:.92rem;font-weight:700;color:var(--w);margin-bottom:.6rem;}
 .md-section p{font-size:.85rem;color:var(--w65);line-height:1.75;}
 .md-meta-list{display:flex;flex-direction:column;gap:.5rem;}
 .md-meta-item{display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--w65);}
-.md-meta-item i{font-size:15px;color:var(--amber2);}
-.t-icon{width:42px;height:42px;background:var(--w08);border:1px solid var(--w12);border-radius:10px;
+.md-meta-item i{font-size:15px;color:var(--blue2);}
+.t-icon{width:42px;height:42px;background:var(--blue5);border:1px solid var(--w12);border-radius:10px;
   display:flex;align-items:center;justify-content:center;margin-bottom:1rem;}
-.t-icon i{font-size:1.2rem;color:var(--sky4);}
+.t-icon i{font-size:1.2rem;color:var(--blue1);}
 .t-lv{display:inline-block;font-size:.62rem;font-weight:700;padding:2px 8px;border-radius:4px;
   text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem;}
-.lv-b{background:rgba(29,158,117,.2);color:#5DCAA5;}
-.lv-i{background:rgba(239,159,39,.2);color:#EF9F27;}
-.lv-a{background:rgba(226,75,74,.2);color:#E24B4A;}
+.lv-b{background:rgba(46,158,107,.15);color:#2E9E6B;}
+.lv-i{background:rgba(217,146,50,.15);color:#B5750F;}
+.lv-a{background:rgba(200,60,58,.15);color:#B5372F;}
+.lv-badge{display:inline-block;font-size:.7rem;font-weight:700;padding:3px 10px;border-radius:6px;
+  text-transform:uppercase;letter-spacing:.05em;}
 .t-card h4{font-size:.9rem;font-weight:600;color:var(--w85);margin-bottom:.4rem;}
 .t-card p{font-size:.78rem;color:var(--w65);line-height:1.6;margin-bottom:.75rem;}
 .t-meta{display:flex;gap:10px;font-size:.72rem;color:var(--w40);}
@@ -481,24 +435,24 @@ body.ltr .lesson-section ul{padding-right:0;padding-left:1.2rem;}
 .guide-section{padding:0 2rem 3rem;}
 .guide-section h3{font-size:1rem;font-weight:700;color:var(--w);margin-bottom:1.25rem;
   display:flex;align-items:center;gap:8px;}
-.guide-section h3 i{font-size:1rem;color:var(--amber2);}
+.guide-section h3 i{font-size:1rem;color:var(--blue2);}
 .steps{display:flex;flex-direction:column;gap:.75rem;}
-.step{display:flex;gap:1rem;padding:1rem 1.25rem;background:var(--w08);border:1px solid var(--w12);border-radius:12px;}
-.step-num{width:28px;height:28px;background:var(--amber);border-radius:50%;
+.step{display:flex;gap:1rem;padding:1rem 1.25rem;background:#fff;border:1px solid var(--w12);border-radius:12px;}
+.step-num{width:28px;height:28px;background:var(--blue2);border-radius:50%;
   display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:#fff;flex-shrink:0;}
 .step-body h5{font-size:.85rem;font-weight:600;color:var(--w85);margin-bottom:.25rem;}
 .step-body p{font-size:.78rem;color:var(--w65);line-height:1.6;}
 
 /* ══ ABOUT ══ */
 .about-grid{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--w08);}
-.about-l{padding:3rem 2.5rem;background:rgba(5,33,63,.4);backdrop-filter:blur(12px);border-left:1px solid var(--w08);}
+.about-l{padding:3rem 2.5rem;background:#fff;border-left:1px solid var(--w08);}
 .about-l h2{font-size:1.4rem;font-weight:700;color:var(--w);margin-bottom:1rem;}
 .about-l p{font-size:.87rem;color:var(--w65);line-height:1.8;margin-bottom:1rem;}
-.about-pull{border-right:3px solid var(--amber);padding:.75rem 1rem;background:rgba(192,120,64,.08);
+.about-pull{border-right:3px solid var(--blue2);padding:.75rem 1rem;background:var(--blue5);
   border-radius:0 8px 8px 0;font-size:.95rem;font-weight:500;color:var(--w85);margin:1.5rem 0;}
-.about-r{background:rgba(10,40,70,.6);backdrop-filter:blur(12px);padding:3rem 2.5rem;display:flex;flex-direction:column;gap:.75rem;}
-.c-card{background:var(--w08);border:1px solid var(--w12);border-radius:10px;padding:1rem;display:flex;align-items:center;gap:12px;}
-.c-card i{font-size:1.2rem;color:var(--amber2);}
+.about-r{background:var(--bone2);padding:3rem 2.5rem;display:flex;flex-direction:column;gap:.75rem;}
+.c-card{background:#fff;border:1px solid var(--w12);border-radius:10px;padding:1rem;display:flex;align-items:center;gap:12px;}
+.c-card i{font-size:1.2rem;color:var(--blue2);}
 .c-card strong{display:block;font-size:.85rem;color:var(--w85);margin-bottom:1px;}
 .c-card span{font-size:.77rem;color:var(--w40);}
 
@@ -515,9 +469,9 @@ body.ltr .lesson-section ul{padding-right:0;padding-left:1.2rem;}
   backdrop-filter:blur(4px);
 }
 .email-modal{
-  background:rgba(10,40,70,.97);border:1px solid var(--w20);border-radius:18px;
+  background:#fff;border:1px solid var(--w20);border-radius:18px;
   padding:2rem 1.75rem;max-width:380px;width:100%;position:relative;
-  box-shadow:0 30px 80px rgba(0,0,0,.5);text-align:center;
+  box-shadow:0 30px 80px rgba(28,27,24,.25);text-align:center;
 }
 .email-modal-close{
   position:absolute;top:14px;right:14px;background:var(--w08);border:none;
@@ -527,10 +481,10 @@ body.ltr .lesson-section ul{padding-right:0;padding-left:1.2rem;}
 .email-modal-close:hover{background:var(--w20);}
 .email-modal-icon{
   width:52px;height:52px;margin:0 auto 1rem;border-radius:50%;
-  background:rgba(192,120,64,.18);border:1px solid rgba(192,120,64,.35);
+  background:var(--blue5);border:1px solid rgba(46,115,214,.35);
   display:flex;align-items:center;justify-content:center;
 }
-.email-modal-icon i{font-size:1.4rem;color:var(--amber2);}
+.email-modal-icon i{font-size:1.4rem;color:var(--blue1);}
 .email-modal h3{font-size:1.05rem;font-weight:700;color:var(--w);margin-bottom:.6rem;}
 .email-modal p{font-size:.82rem;color:var(--w65);line-height:1.7;margin-bottom:1.25rem;}
 .email-modal input{
@@ -539,30 +493,30 @@ body.ltr .lesson-section ul{padding-right:0;padding-left:1.2rem;}
   font-family:'Plus Jakarta Sans','Vazirmatn',sans-serif;outline:none;
   transition:border-color .2s;box-sizing:border-box;
 }
-.email-modal input:focus{border-color:var(--amber2);}
+.email-modal input:focus{border-color:var(--blue2);}
 .email-modal input::placeholder{color:var(--w40);}
 .email-modal-error{
-  font-size:.78rem;color:#f5a8a0;text-align:right;margin-bottom:.75rem;
+  font-size:.78rem;color:#B5372F;text-align:right;margin-bottom:.75rem;
 }
 body.ltr .email-modal-error{text-align:left;}
 .email-modal-submit{
-  width:100%;background:var(--amber);border:none;color:#fff;padding:12px;
+  width:100%;background:var(--blue2);border:none;color:#fff;padding:12px;
   border-radius:10px;font-size:.92rem;font-weight:700;cursor:pointer;
   transition:background .2s;font-family:'Plus Jakarta Sans','Vazirmatn',sans-serif;
 }
-.email-modal-submit:hover{background:var(--amber2);}
+.email-modal-submit:hover{background:var(--blue1);}
 
-footer{background:rgba(5,20,40,.7);backdrop-filter:blur(10px);border-top:1px solid var(--w08);
+footer{background:var(--bone2);border-top:1px solid var(--w08);
   padding:1.25rem 2rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;}
 .f-logo{font-size:1rem;font-weight:700;color:var(--w);display:flex;align-items:center;gap:6px;}
-.f-logo i{color:rgba(192,120,64,.8);}
+.f-logo i{color:var(--blue2);}
 footer p{font-size:.73rem;color:var(--w40);}
 .f-coins{display:flex;gap:.75rem;font-size:.75rem;color:var(--w40);}
 .f-coins span{display:flex;align-items:center;gap:3px;}
 
 /* LTR */
 body.ltr{direction:ltr;}
-body.ltr .about-pull{border-right:none;border-left:3px solid var(--amber);border-radius:8px 0 0 8px;}
+body.ltr .about-pull{border-right:none;border-left:3px solid var(--blue2);border-radius:8px 0 0 8px;}
 body.ltr .about-l{border-left:none;border-right:1px solid var(--w08);}
 body.ltr .search-bar{padding:6px 8px 6px 20px;flex-direction:row;}
 body.ltr .search-bar i.si{margin-left:0;margin-right:10px;order:0;}
@@ -576,15 +530,19 @@ body.ltr .search-bar .search-go{order:2;margin-left:4px;margin-right:0;}
 
 <div id="app">
 <nav>
-  <div class="logo" onclick="goPage('home',document.querySelectorAll('.nav-tab')[0])" style="cursor:pointer;" role="button"><svg class="logo-svg" id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="-11.86 234.00 645.76 112.00"><defs><style>.cls-1{fill:#29abe2;}.cls-2{fill:#e90e8b;}.cls-3{fill:#fcee1f;}.cls-4{fill:#fff;}</style></defs><rect class="cls-1" x="281.94" y="252.65" width="10.68" height="10.68"/><rect class="cls-2" x="271.26" y="263.33" width="10.68" height="10.68"/><rect class="cls-3" x="271.26" y="241.97" width="10.68" height="10.68"/><rect class="cls-4" x="283.21" y="253.92" width="10.68" height="10.68"/><rect class="cls-4" x="272.53" y="264.6" width="10.68" height="10.68"/><rect class="cls-4" x="272.53" y="243.24" width="10.68" height="10.68"/><polygon class="cls-4" points="315.24 296.63 325.92 296.63 325.92 285.95 315.24 285.95 304.56 285.95 293.88 285.95 283.21 285.95 272.53 285.95 261.85 285.95 251.17 285.95 251.17 296.63 251.17 307.31 251.17 317.99 261.85 317.99 261.85 328.67 272.53 328.67 272.53 339.34 283.21 339.34 293.88 339.34 293.88 328.67 304.56 328.67 304.56 317.99 315.24 317.99 315.24 307.31 315.24 296.63"/><polygon class="cls-4" points="325.92 296.63 325.92 307.31 325.92 317.99 336.6 317.99 336.6 307.31 336.6 296.63 325.92 296.63"/><rect class="cls-4" x="315.24" y="317.99" width="10.68" height="10.68"/><rect class="cls-4" x="240.49" y="285.95" width="10.68" height="10.68"/><path class="cls-4" d="M376.86,318.07H361.28a5.87,5.87,0,0,1-5.86-5.87V300.49a5.87,5.87,0,0,1,5.86-5.87h15.58v3.76H361.28a2.11,2.11,0,0,0-2.11,2.11V312.2a2.12,2.12,0,0,0,2.11,2.12h15.58Z"/><path class="cls-4" d="M594.83,318H583.12a5.87,5.87,0,0,1-5.86-5.86V294.62H581v17.52a2.11,2.11,0,0,0,2.11,2.11h11.71a2.12,2.12,0,0,0,2.12-2.11V294.62h3.75v17.52A5.87,5.87,0,0,1,594.83,318Z"/><path class="cls-4" d="M548.31,318.07H532.73a5.87,5.87,0,0,1-5.86-5.87V300.49a5.87,5.87,0,0,1,5.86-5.87h15.58v3.76H532.73a2.11,2.11,0,0,0-2.11,2.11V312.2a2.12,2.12,0,0,0,2.11,2.12h15.58Z"/><polygon class="cls-4" points="573.5 318.07 568.05 318.07 552.89 307.9 554.98 304.79 569.19 314.31 573.5 314.31 573.5 318.07"/><rect class="cls-4" x="552.06" y="294.62" width="3.75" height="23.87"/><polygon class="cls-4" points="554.95 307.93 552.93 304.76 568.85 294.62 573.5 294.62 573.5 298.38 569.95 298.38 554.95 307.93"/><path class="cls-4" d="M517.26,318.07H505.67a5.87,5.87,0,0,1-5.87-5.87V300.49a5.87,5.87,0,0,1,5.87-5.87h11.59a5.87,5.87,0,0,1,5.86,5.87V312.2A5.87,5.87,0,0,1,517.26,318.07Zm-11.59-19.69a2.1,2.1,0,0,0-2.11,2.11V312.2a2.11,2.11,0,0,0,2.11,2.12h11.59a2.12,2.12,0,0,0,2.11-2.12V300.49a2.11,2.11,0,0,0-2.11-2.11Z"/><polygon class="cls-4" points="496.05 318.07 492.3 318.07 492.3 298.38 490.18 298.38 484.39 306.93 478.61 298.38 476.49 298.38 476.49 318.07 472.74 318.07 472.74 294.62 480.6 294.62 484.39 300.24 488.19 294.62 496.05 294.62 496.05 318.07"/><path class="cls-4" d="M459,318.07H435.65V300.49a5.87,5.87,0,0,1,5.87-5.87h11.59a5.87,5.87,0,0,1,5.86,5.87v8.72H439.41v5.11H459Zm-19.56-12.61h15.81v-5a2.11,2.11,0,0,0-2.11-2.11H441.52a2.1,2.1,0,0,0-2.11,2.11Z"/><path class="cls-4" d="M414.21,318.07h-3.75V300.49a5.87,5.87,0,0,1,5.87-5.87H431.9v3.76H416.33a2.11,2.11,0,0,0-2.12,2.11Z"/><path class="cls-4" d="M406.51,318.07h-2.65l-1.7-1.8-1.44,1.8H380.61V300.49a5.87,5.87,0,0,1,5.86-5.87h17.46v18.06l1.54,1.64h1Zm-22.15-3.75h14.57l1.25-1.56V298.38H386.47a2.11,2.11,0,0,0-2.11,2.11Z"/><rect class="cls-4" x="412.34" y="305.46" width="13.95" height="3.75"/><path class="cls-4" d="M608.2,318h-3.75V294.62H621.9a5.87,5.87,0,0,1,5.86,5.87v2.85a5.87,5.87,0,0,1-5.86,5.87H608.2Zm0-12.54h13.7a2.11,2.11,0,0,0,2.11-2.12v-2.85a2.1,2.1,0,0,0-2.11-2.11H608.2Z"/></svg></div>
-  <div class="nav-center">
-    <button class="nav-tab active" onclick="goPage('home',this)" data-fa="خانه" data-en="Home">Home</button>
-    <button class="nav-tab" onclick="goPage('gallery',this)" data-fa="موکاپ‌ها" data-en="Gallery">Gallery</button>
-    <button class="nav-tab" onclick="goPage('pricing',this)" data-fa="پلن‌ها" data-en="Pricing">Pricing</button>
-    <button class="nav-tab" onclick="goPage('tutorials',this)" data-fa="آموزش" data-en="Tutorials">Tutorials</button>
-    <button class="nav-tab" onclick="goPage('about',this)" data-fa="درباره ما" data-en="About">About</button>
-  </div>
-  <div class="nav-right">
+  <div class="logo" onclick="goPage('home',document.querySelectorAll('.nav-tab')[0])" style="cursor:pointer;" role="button"><svg class="logo-svg" viewBox="0 0 1280.5 257.9" xmlns="http://www.w3.org/2000/svg"><style>.st0{fill:#354A9F;}.st1{fill:#EE3B95;}.st2{fill:#F18421;}.st3{fill:#231F20;}</style><g><g><rect x="112.8" y="37.8" class="st0" width="25.3" height="25.3"/><rect x="87.5" y="63.1" class="st1" width="25.3" height="25.3"/><rect x="87.5" y="12.8" class="st2" width="25.3" height="25.3"/><rect x="115.8" y="40.9" class="st3" width="25.3" height="25.3"/><rect x="90.6" y="66.2" class="st3" width="25.3" height="25.3"/><rect x="90.6" y="15.6" class="st3" width="25.3" height="25.3"/><g><polygon class="st3" points="191.4,141.7 216.7,141.7 216.7,116.5 191.4,116.5 166.4,116.5 141.1,116.5 115.8,116.5 90.6,116.5 65.3,116.5 40.3,116.5 40.3,141.7 40.3,167 40.3,192.3 65.3,192.3 65.3,217.3 90.6,217.3 90.6,242.6 115.8,242.6 141.1,242.6 141.1,217.3 166.4,217.3 166.4,192.3 191.4,192.3 191.4,167 "/><polygon class="st3" points="216.7,141.7 216.7,167 216.7,192.3 241.9,192.3 241.9,167 241.9,141.7 "/><rect x="191.4" y="192.3" class="st3" width="25.3" height="25.3"/><rect x="15" y="116.5" class="st3" width="25.3" height="25.3"/></g></g><g><path class="st3" d="M306.9,139.9v81.2c0,11.1,9,20.1,20.1,20.1h53.4v-12.8H327c-4,0-7.3-3.3-7.3-7.3v-81.2c0-4,3.3-7.3,7.3-7.3h53.4v-12.8H327C315.9,119.8,306.9,128.8,306.9,139.9z"/><path class="st3" d="M1161.8,220.9c0,4-3.3,7.3-7.3,7.3h-40.1c-4,0-7.3-3.3-7.3-7.3v-60h-12.8v60c0,11.1,9,20.1,20.1,20.1h40.1c11.1,0,20.1-9,20.1-20.1v-60h-12.8V220.9z"/><path class="st3" d="M914.8,181v40.1c0,11.1,9,20.1,20.1,20.1h53.4v-12.8h-53.4c-4,0-7.3-3.3-7.3-7.3V181c0-4,3.3-7.3,7.3-7.3h53.4v-12.8h-53.4C923.7,160.9,914.8,169.9,914.8,181z"/><polygon class="st3" points="1017.3,189.5 1017.3,160.9 1004.5,160.9 1004.5,242.6 1017.3,242.6 1017.3,213.1 1059.3,241.2 1078,241.2 1078,228.4 1063.1,228.4 1022.7,201.3 1065.7,173.6 1078,173.6 1078,160.9 1062.1,160.9 "/><path class="st3" d="M878.4,160.9h-39.7c-11.1,0-20.1,9-20.1,20.1v40.1c0,11.1,9,20.1,20.1,20.1h39.7c11.1,0,20.1-9,20.1-20.1V181C898.5,169.9,889.5,160.9,878.4,160.9z M885.7,221.1c0,4-3.3,7.3-7.3,7.3h-39.7c-4,0-7.3-3.3-7.3-7.3V181c0-4,3.3-7.3,7.3-7.3h39.7c4,0,7.3,3.3,7.3,7.3V221.1z"/><polygon class="st3" points="762.4,145.8 749.5,119.8 722.5,119.8 722.5,241.2 735.3,241.2 735.3,132.5 742.6,132.5 762.4,168.7 782.3,132.5 789.6,132.5 789.6,241.2 802.4,241.2 802.4,119.8 775.4,119.8 "/><path class="st3" d="M651.9,160.9h-39.7c-11.1,0-20.1,9-20.1,20.1v60.2H672v-12.8h-67.1v-17.5H672v-29.8C672,169.9,663,160.9,651.9,160.9z M659,198h-54.1v-17c0-4,3.3-7.3,7.3-7.3h39.7c4,0,7.3,3.3,7.3,7.3v17H659z"/><path class="st3" d="M502.4,181v60.2h12.8v-30.2h41.3v-12.8h-41.3v-17c0-4,3.3-7.3,7.3-7.3h53.4v-12.8h-53.4C511.4,160.9,502.4,169.9,502.4,181z"/><path class="st3" d="M476.5,222.8v-61.9h-59.7c-11.1,0-20.1,9-20.1,20.1v60.2h69l5-6.1l5.9,6.1h9v-12.8h-3.5L476.5,222.8z M463.7,223l-4.3,5.2h-49.8v-47.5c0-4,3.3-7.3,7.3-7.3h47V223H463.7z"/><path class="st3" d="M1250.6,160.9h-59.7v80.1h12.8v-30.2h47c11.1,0,20.1-9,20.1-20.1V181C1270.7,169.9,1261.7,160.9,1250.6,160.9z M1257.9,190.9c0,4-3.3,7.3-7.3,7.3h-47v-24.3h47c4,0,7.3,3.3,7.3,7.3V190.9z"/></g></g></svg></div>
+  <button class="hamburger-btn" onclick="toggleMobileMenu()">
+    <i class="ti ti-menu-2" id="hamburgerIcon"></i>
+  </button>
+</nav>
+
+<div class="menu-overlay" id="menuOverlay">
+  <button class="menu-overlay-close" onclick="closeMobileMenu()"><i class="ti ti-x"></i></button>
+  <button class="menu-overlay-link nav-tab active" onclick="goPage('home',this);closeMobileMenu()" data-fa="خانه" data-en="Home">Home</button>
+  <button class="menu-overlay-link nav-tab" onclick="goPage('pricing',this);closeMobileMenu()" data-fa="پلن‌ها" data-en="Pricing">Pricing</button>
+  <button class="menu-overlay-link nav-tab" onclick="goPage('tutorials',this);closeMobileMenu()" data-fa="آموزش" data-en="Tutorials">Tutorials</button>
+  <button class="menu-overlay-link nav-tab" onclick="goPage('about',this);closeMobileMenu()" data-fa="درباره ما" data-en="About">About</button>
+  <div class="menu-overlay-actions">
     <div class="lang-toggle">
       <button class="lang-btn" onclick="setLang('fa',this)">FA</button>
       <button class="lang-btn active" onclick="setLang('en',this)">EN</button>
@@ -593,51 +551,16 @@ body.ltr .search-bar .search-go{order:2;margin-left:4px;margin-right:0;}
       <i class="ti ti-user-circle" id="navLoginIcon"></i>
       <span id="navLoginLabel" data-fa="ورود" data-en="Login">Login</span>
     </button>
-
   </div>
-  <button class="hamburger-btn" onclick="toggleMobileMenu()">
-    <i class="ti ti-menu-2" id="hamburgerIcon"></i>
-  </button>
-  <div class="mobile-dropdown" id="mobileDropdown">
-    <button class="nav-tab active" onclick="goPage('home',this);closeMobileMenu()" data-fa="خانه" data-en="Home">Home</button>
-    <button class="nav-tab" onclick="goPage('gallery',this);closeMobileMenu()" data-fa="موکاپ‌ها" data-en="Gallery">Gallery</button>
-    <button class="nav-tab" onclick="goPage('pricing',this);closeMobileMenu()" data-fa="پلن‌ها" data-en="Pricing">Pricing</button>
-    <button class="nav-tab" onclick="goPage('tutorials',this);closeMobileMenu()" data-fa="آموزش" data-en="Tutorials">Tutorials</button>
-    <button class="nav-tab" onclick="goPage('about',this);closeMobileMenu()" data-fa="درباره ما" data-en="About">About</button>
+  <div class="menu-overlay-foot">
+    <span>hello@cafemockup.com</span>
   </div>
-</nav>
+</div>
 
-<!-- HOME -->
+<!-- HOME (merged with Gallery) -->
 <div id="pg-home" class="page active">
-  <div class="home-hero">
-    <div class="eyebrow" style="animation-delay:.05s"><i class="ti ti-sparkles"></i><span data-fa="پلتفرم موکاپ حرفه‌ای" data-en="Professional Mockup Platform">Professional Mockup Platform</span></div>
-    <h1 class="hero-h1" style="animation-delay:.1s"
-      data-fa="موکاپ‌های <em>پریمیوم</em><br>برای برندهای خلاق" data-en="Premium PSD Mockups<br>For <em>Creative Brands</em>">Premium PSD Mockups<br>For <em>Creative Brands</em>
-    </h1>
-    <p class="hero-sub" style="animation-delay:.15s"
-      data-fa="بیش از ۲۴۰ موکاپ حرفه‌ای آماده دانلود. پرداخت فوری با Bitcoin، Ethereum و USDT." data-en="Over 240 professional mockups ready to download. Pay instantly with Bitcoin, Ethereum or USDT.">Over 240 professional mockups ready to download. Pay instantly with Bitcoin, Ethereum or USDT.</p>
-    <div class="hero-ctas" style="animation-delay:.18s">
-      <button class="cta-primary" onclick="goPage('gallery',document.querySelectorAll('.nav-tab')[1])">
-        <i class="ti ti-layout-grid"></i>
-        <span data-fa="مشاهده موکاپ‌ها" data-en="Browse Mockups">Browse Mockups</span>
-      </button>
-      <button class="cta-secondary" onclick="goPage('tutorials',document.querySelectorAll('.nav-tab')[3])">
-        <span data-fa="شروع یادگیری" data-en="Start Exploring">Start Exploring</span>
-        <i class="ti ti-arrow-right" id="ctaArrow"></i>
-      </button>
-    </div>
-    <div class="crypto-badge" style="animation-delay:.22s">
-      <span class="cb-dot"></span>
-      <i class="ti ti-lock-open"></i>
-      <span data-fa="پرداخت امن با کریپتو" data-en="Secure Crypto Payment">Secure Crypto Payment</span>
-      <span class="cb-sep">·</span>
-      <div class="cb-coins">
-        <i class="ti ti-currency-bitcoin"></i> BTC
-        <i class="ti ti-currency-ethereum"></i> ETH
-        <i class="ti ti-coin"></i> USDT
-      </div>
-    </div>
-    <div class="search-wrap" style="animation-delay:.26s">
+  <div class="home-topbar">
+    <div class="search-wrap">
       <div class="search-bar">
         <i class="ti ti-search si"></i>
         <input type="text" id="searchInput" placeholder="Search... iPhone, packaging, branding"
@@ -652,48 +575,40 @@ body.ltr .search-bar .search-go{order:2;margin-left:4px;margin-right:0;}
         <div class="sd-row" onclick="doSearch('Coffee Cup')"><i class="ti ti-coffee"></i>Coffee Cup Branding</div>
       </div>
     </div>
-    <div class="hero-stats" style="animation-delay:.3s">
-      <div class="h-stat"><i class="ti ti-stack-2"></i><span data-fa="بیش از <strong>۲۴۰</strong> موکاپ" data-en="Over <strong>240</strong> mockups">Over <strong>240</strong> mockups</span></div>
-      <div class="h-stat"><i class="ti ti-currency-bitcoin"></i><span><strong>BTC · ETH · USDT</strong></span></div>
-      <div class="h-stat"><i class="ti ti-users"></i><span data-fa="<strong>۱۲k+</strong> طراح" data-en="<strong>12k+</strong> designers"><strong>12k+</strong> designers</span></div>
-      <div class="h-stat"><i class="ti ti-certificate"></i><span data-fa="لایسنس <strong>تجاری</strong>" data-en="<strong>Commercial</strong> license"><strong>Commercial</strong> license</span></div>
+    <div class="filters">
+      <button class="f-btn active" data-cat="all" data-fa="همه" data-en="All">All</button>
+      <button class="f-btn" data-cat="Mobile" data-fa="موبایل" data-en="Mobile">Mobile</button>
+      <button class="f-btn" data-cat="Desktop" data-fa="دسکتاپ" data-en="Desktop">Desktop</button>
+      <button class="f-btn" data-cat="Product" data-fa="محصول" data-en="Product">Product</button>
+      <button class="f-btn" data-cat="Branding" data-fa="برندینگ" data-en="Branding">Branding</button>
+      <button class="f-btn" data-cat="free" data-fa="رایگان" data-en="Free">Free</button>
     </div>
   </div>
+
   <div class="s-results" id="searchResults">
     <h3 id="srTitle">Search Results</h3>
     <div class="mockup-grid" id="srGrid"></div>
   </div>
 
-  <!-- Categories preview — fills the empty space below the hero, especially on mobile -->
-  <div class="home-categories">
-    <div class="hc-head">
-      <h2 data-fa="دسته‌بندی‌های محبوب" data-en="Popular Categories">Popular Categories</h2>
+  <div class="mockup-grid" id="mainGrid"></div>
+  <noscript>
+    <div style="padding:2rem;color:#1C1B18;">
+      <h3>Mockups available in the MockupCafe gallery:</h3>
+      <ul>
+        <li>iPhone 15 Pro Clay — Mobile Mockup — Free</li>
+        <li>MacBook Pro Workspace — Desktop Mockup — $4</li>
+        <li>Gift Box Premium — Product Mockup — $6</li>
+        <li>Business Card Flat — Branding Mockup — Free</li>
+        <li>iMac Studio Scene — Desktop Mockup — $8</li>
+        <li>Coffee Cup Branding — Product Mockup — Free</li>
+        <li>Samsung Galaxy S24 — Mobile Mockup — $3</li>
+        <li>Letterhead Official — Branding Mockup — Free</li>
+      </ul>
+      <p>To download and purchase, please enable JavaScript in your browser.</p>
     </div>
-    <div class="hc-grid">
-      <div class="hc-card" onclick="goPage('gallery',document.querySelectorAll('.nav-tab')[1])">
-        <div class="hc-icon"><i class="ti ti-device-mobile"></i></div>
-        <div class="hc-name" data-fa="موبایل" data-en="Mobile">Mobile</div>
-        <div class="hc-count" data-fa="۸۵ موکاپ" data-en="85 mockups">85 mockups</div>
-      </div>
-      <div class="hc-card" onclick="goPage('gallery',document.querySelectorAll('.nav-tab')[1])">
-        <div class="hc-icon"><i class="ti ti-device-laptop"></i></div>
-        <div class="hc-name" data-fa="دسکتاپ" data-en="Desktop">Desktop</div>
-        <div class="hc-count" data-fa="۶۰ موکاپ" data-en="60 mockups">60 mockups</div>
-      </div>
-      <div class="hc-card" onclick="goPage('gallery',document.querySelectorAll('.nav-tab')[1])">
-        <div class="hc-icon"><i class="ti ti-box"></i></div>
-        <div class="hc-name" data-fa="محصول" data-en="Product">Product</div>
-        <div class="hc-count" data-fa="۵۵ موکاپ" data-en="55 mockups">55 mockups</div>
-      </div>
-      <div class="hc-card" onclick="goPage('gallery',document.querySelectorAll('.nav-tab')[1])">
-        <div class="hc-icon"><i class="ti ti-id-badge"></i></div>
-        <div class="hc-name" data-fa="برندینگ" data-en="Branding">Branding</div>
-        <div class="hc-count" data-fa="۴۰ موکاپ" data-en="40 mockups">40 mockups</div>
-      </div>
-    </div>
-  </div>
+  </noscript>
 
-  <!-- Why MockupCafe — second fill section -->
+  <!-- Why MockupCafe -->
   <div class="home-why">
     <div class="hw-item">
       <div class="hw-icon"><i class="ti ti-bolt"></i></div>
@@ -713,38 +628,6 @@ body.ltr .search-bar .search-go{order:2;margin-left:4px;margin-right:0;}
   </div>
 </div>
 
-<!-- GALLERY -->
-<div id="pg-gallery" class="page">
-  <div class="gallery-head">
-    <h2 data-fa="گالری موکاپ‌ها" data-en="Mockup Gallery">Mockup Gallery</h2>
-    <div class="filters">
-      <button class="f-btn active" data-cat="all" data-fa="همه" data-en="All">All</button>
-      <button class="f-btn" data-cat="Mobile" data-fa="موبایل" data-en="Mobile">Mobile</button>
-      <button class="f-btn" data-cat="Desktop" data-fa="دسکتاپ" data-en="Desktop">Desktop</button>
-      <button class="f-btn" data-cat="Product" data-fa="محصول" data-en="Product">Product</button>
-      <button class="f-btn" data-cat="Branding" data-fa="برندینگ" data-en="Branding">Branding</button>
-      <button class="f-btn" data-cat="free" data-fa="رایگان" data-en="Free">Free</button>
-    </div>
-  </div>
-  <div class="mockup-grid" id="mainGrid"></div>
-  <noscript>
-    <div style="padding:2rem;color:#fff;">
-      <h3>Mockups available in the MockupCafe gallery:</h3>
-      <ul>
-        <li>iPhone 15 Pro Clay — Mobile Mockup — Free</li>
-        <li>MacBook Pro Workspace — Desktop Mockup — $4</li>
-        <li>Gift Box Premium — Product Mockup — $6</li>
-        <li>Business Card Flat — Branding Mockup — Free</li>
-        <li>iMac Studio Scene — Desktop Mockup — $8</li>
-        <li>Coffee Cup Branding — Product Mockup — Free</li>
-        <li>Samsung Galaxy S24 — Mobile Mockup — $3</li>
-        <li>Letterhead Official — Branding Mockup — Free</li>
-      </ul>
-      <p>To download and purchase, please enable JavaScript in your browser.</p>
-    </div>
-  </noscript>
-</div>
-
 <!-- PRICING -->
 <div id="pg-pricing" class="page">
   <div class="pricing-head">
@@ -759,7 +642,7 @@ body.ltr .search-bar .search-go{order:2;margin-left:4px;margin-right:0;}
     <div class="coming-soon-icon"><i class="ti ti-clock-hour-4"></i></div>
     <h3 data-fa="پلن‌های اشتراک به‌زودی فعال می‌شوند" data-en="Subscription Plans Coming Soon">Subscription Plans Coming Soon</h3>
     <p data-fa="در حال حاضر می‌توانید موکاپ‌ها را به‌صورت تکی از گالری خریداری کنید. پلن‌های اشتراک ماهانه به‌زودی اضافه خواهند شد." data-en="For now, you can purchase mockups individually from the gallery. Monthly subscription plans will be added soon.">For now, you can purchase mockups individually from the gallery. Monthly subscription plans will be added soon.</p>
-    <button class="btn-gold" onclick="goPage('gallery',document.querySelectorAll('.nav-tab')[1])">
+    <button class="btn-gold" onclick="goPage('home',document.querySelectorAll('.nav-tab')[0])">
       <span data-fa="مشاهده موکاپ‌ها" data-en="Browse Mockups">Browse Mockups</span>
     </button>
   </div>
@@ -859,10 +742,6 @@ body.ltr .search-bar .search-go{order:2;margin-left:4px;margin-right:0;}
           <i class="ti ti-info-circle"></i>
           <span data-fa="اگر این صفحه را بستی، نگران نباش — دوباره روی دکمه‌ی «خرید» همین موکاپ بزن و وضعیت پرداختت همینجا ادامه پیدا می‌کند." data-en="If you closed this page, don't worry — just click Buy on this same item again and your payment status will resume here.">If you closed this page, don't worry — just click Buy on this same item again and your payment status will resume here.</span>
         </div>
-        <button onclick="cancelPaymentAndGoBack()" style="margin-top:1rem;width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.6);padding:11px;border-radius:10px;font-size:.85rem;cursor:pointer;font-family:inherit;">
-          <i class="ti ti-arrow-left" style="margin-left:5px;"></i>
-          <span data-fa="تغییر ارز / بازگشت" data-en="Change currency / Go back">Change currency / Go back</span>
-        </button>
       </div>
 
       <!-- STEP 3: success -->
@@ -912,7 +791,7 @@ body.ltr .search-bar .search-go{order:2;margin-left:4px;margin-right:0;}
 <!-- LESSON DETAIL -->
 <div id="pg-lesson" class="page">
   <div class="lesson-wrap">
-    <button class="lesson-back" onclick="goPage('tutorials',document.querySelectorAll('.nav-tab')[3])">
+    <button class="lesson-back" onclick="goPage('tutorials',document.querySelectorAll('.nav-tab')[2])">
       <i class="ti ti-arrow-left" id="lessonBackArrow"></i>
       <span data-fa="بازگشت به آموزش‌ها" data-en="Back to Tutorials">Back to Tutorials</span>
     </button>
@@ -923,7 +802,7 @@ body.ltr .search-bar .search-go{order:2;margin-left:4px;margin-right:0;}
 <!-- MOCKUP DETAIL -->
 <div id="pg-mockup-detail" class="page">
   <div class="mockup-detail-wrap">
-    <button class="lesson-back" onclick="goPage('gallery',document.querySelectorAll('.nav-tab')[1])">
+    <button class="lesson-back" onclick="goPage('home',document.querySelectorAll('.nav-tab')[0])">
       <i class="ti ti-arrow-left" id="mockupBackArrow"></i>
       <span data-fa="بازگشت به گالری" data-en="Back to Gallery">Back to Gallery</span>
     </button>
@@ -1327,7 +1206,7 @@ function renderMockups(items,containerId){
     const key = registerMockup(m);
     return `
     <div class="m-card" style="animation-delay:${i*.04}s">
-      <div class="m-thumb" style="${m.image?`background-image:url('${m.image}');background-size:contain;background-repeat:no-repeat;background-position:center;background-color:rgba(255,255,255,.04);`:`background:rgba(10,40,80,${.3+i*.03})`}" onclick="openMockupDetail('${key}')" role="button">
+      <div class="m-thumb" style="${m.image?`background-image:url('${m.image}');background-size:contain;background-repeat:no-repeat;background-position:center;background-color:var(--bone2);`:`background:rgba(46,115,214,${.05+i*.02})`}" onclick="openMockupDetail('${key}')" role="button">
         ${m.image ? '' : `<i class="ti ${m.icon}"></i>`}
         <span class="m-badge ${m.free?'b-free':'b-pro'}">${m.free?(lang==='fa'?'رایگان':'Free'):'Pro'}</span>
       </div>
@@ -1498,9 +1377,6 @@ function handleBuyMockup(price, name, downloadUrl){
     return;
   }
   requireEmail(() => {
-    // Clear any previous pending payment so currency selection always shows first
-    clearPendingPayment();
-    if(paymentPollInterval){ clearInterval(paymentPollInterval); paymentPollInterval = null; }
     // Store the pending download so we can release it after payment confirms
     pendingDownloadUrl = downloadUrl;
     setPaymentOrder(parseFloat(price), name);
@@ -1509,9 +1385,9 @@ function handleBuyMockup(price, name, downloadUrl){
 }
 
 /* ─── FILTER BUTTONS ─── */
-document.querySelectorAll('#pg-gallery .f-btn').forEach(btn=>{
+document.querySelectorAll('#pg-home .filters .f-btn').forEach(btn=>{
   btn.addEventListener('click',function(){
-    document.querySelectorAll('#pg-gallery .f-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('#pg-home .filters .f-btn').forEach(b=>b.classList.remove('active'));
     this.classList.add('active');
     const cat=this.dataset.cat;
     const filtered=cat==='all'?mockups:cat==='free'?mockups.filter(m=>m.free):mockups.filter(m=>m.cat===cat);
@@ -1553,12 +1429,6 @@ function goPage(id,btn,skipHistory){
   document.getElementById('searchInput').value='';
   window.scrollTo(0,0);
 
-  /* When leaving payment page, stop polling (will resume if user comes back) */
-  if(id !== 'payment' && paymentPollInterval){
-    clearInterval(paymentPollInterval);
-    paymentPollInterval = null;
-  }
-
   /* Reset payment flow UI to step 1 whenever the payment page is opened, then check for a pending payment to resume */
   if(id === 'payment'){
     if(paymentPollInterval) clearInterval(paymentPollInterval);
@@ -1594,8 +1464,6 @@ function updateSeoForPage(id){
   const seoMap = {
     home:    {fa:['کافه موکاپ | فروشگاه موکاپ PSD با پرداخت کریپتو','دانلود موکاپ‌های حرفه‌ای PSD برای موبایل، دسکتاپ، بسته‌بندی و برندینگ. پرداخت با Bitcoin، Ethereum و USDT.'],
               en:['MockupCafe | Premium PSD Mockups with Crypto Payment','Download premium PSD mockups for mobile, desktop, packaging and branding. Pay with Bitcoin, Ethereum or USDT.']},
-    gallery: {fa:['گالری موکاپ | کافه موکاپ','بیش از ۲۴۰ موکاپ حرفه‌ای رایگان و پریمیوم — موبایل، دسکتاپ، محصول، برندینگ.'],
-              en:['Mockup Gallery | MockupCafe','Over 240 free and premium mockups — mobile, desktop, product, branding.']},
     pricing: {fa:['پلن‌های اشتراک | کافه موکاپ','پلن‌های اشتراک ماهانه برای دسترسی کامل به موکاپ‌های پریمیوم.'],
               en:['Subscription Plans | MockupCafe','Monthly subscription plans for full access to premium mockups.']},
     tutorials:{fa:['آموزش موکاپ | کافه موکاپ','آموزش کامل کار با موکاپ، Smart Object، نورپردازی و برندینگ.'],
@@ -1617,7 +1485,7 @@ function updateSeoForPage(id){
 /* ── Handle browser back/forward buttons ── */
 window.addEventListener('popstate', (e)=>{
   const path = window.location.pathname.replace('/','') || 'home';
-  const validPages = ['home','gallery','pricing','tutorials','about','payment','lesson'];
+  const validPages = ['home','pricing','tutorials','about','payment','lesson'];
   const id = validPages.includes(path) ? path : 'home';
   goPage(id, null, true);
 });
@@ -1627,14 +1495,14 @@ function initFromUrl(){
   const path = window.location.pathname.replace('/','') || 'home';
   const params = new URLSearchParams(window.location.search);
   const urlLang = params.get('lang');
-  const validPages = ['home','gallery','pricing','tutorials','about','payment','lesson'];
+  const validPages = ['home','pricing','tutorials','about','payment','lesson'];
 
   if(urlLang === 'en'){
     const enBtn = document.querySelectorAll('.lang-btn')[1];
     if(enBtn) setLang('en', enBtn);
   }
   if(validPages.includes(path) && path !== 'home'){
-    const tabIndexMap = {gallery:1,pricing:2,tutorials:3,about:4};
+    const tabIndexMap = {pricing:1,tutorials:2,about:3};
     const btn = tabIndexMap[path] !== undefined ? document.querySelectorAll('.nav-tab')[tabIndexMap[path]] : null;
     goPage(path, btn, true);
   } else {
@@ -1642,16 +1510,18 @@ function initFromUrl(){
   }
 }
 
-/* ─── MOBILE MENU ─── */
+/* ─── FULL-SCREEN MENU OVERLAY ─── */
 function toggleMobileMenu(){
-  const dd=document.getElementById('mobileDropdown');
+  const ov=document.getElementById('menuOverlay');
   const icon=document.getElementById('hamburgerIcon');
-  const isOpen=dd.classList.toggle('open');
+  const isOpen=ov.classList.toggle('open');
   icon.className = isOpen ? 'ti ti-x' : 'ti ti-menu-2';
+  document.body.style.overflow = isOpen ? 'hidden' : '';
 }
 function closeMobileMenu(){
-  document.getElementById('mobileDropdown').classList.remove('open');
+  document.getElementById('menuOverlay').classList.remove('open');
   document.getElementById('hamburgerIcon').className='ti ti-menu-2';
+  document.body.style.overflow = '';
 }
 
 /* ─── CRYPTO PICK ─── */
@@ -1689,22 +1559,6 @@ function savePendingPayment(paymentId, downloadUrl, amount, description) {
 }
 function clearPendingPayment() {
   try { localStorage.removeItem('mc_pending_payment'); } catch (e) {}
-}
-
-function cancelPaymentAndGoBack() {
-  // Stop polling
-  if (paymentPollInterval) { clearInterval(paymentPollInterval); paymentPollInterval = null; }
-  // Clear saved pending payment so next visit starts fresh
-  clearPendingPayment();
-  // Reset UI back to step 1 (currency selection)
-  document.getElementById('payStepAddress').style.display = 'none';
-  document.getElementById('payStepSuccess').style.display = 'none';
-  document.getElementById('payStepChoose').style.display = 'block';
-  // Reset button label
-  const lbl = document.getElementById('payLbl');
-  if (lbl) lbl.textContent = lang === 'fa' ? 'پرداخت با ' + (document.getElementById('payLbl').dataset.currency || '') : 'Pay with ...';
-  const errorBox = document.getElementById('payError');
-  if (errorBox) { errorBox.textContent = ''; errorBox.style.display = 'none'; }
 }
 function loadPendingPayment() {
   try {
