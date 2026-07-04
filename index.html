@@ -104,25 +104,32 @@ body.ltr .menu-overlay-close{right:auto;left:24px;}
   font-family:'Plus Jakarta Sans','Vazirmatn',sans-serif;letter-spacing:-.01em;
 }
 .menu-overlay-link:hover,.menu-overlay-link.active{color:var(--blue2);transform:translateY(-2px);}
-.menu-overlay-actions{display:flex;gap:14px;align-items:center;margin-top:1.75rem;}
-.lang-toggle{display:flex;background:var(--w08);border-radius:8px;overflow:hidden;border:1px solid var(--w20);}
-.lang-btn{background:none;border:none;padding:7px 14px;font-size:.78rem;font-weight:600;
-  color:var(--w65);cursor:pointer;transition:all .18s;font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:.04em;}
-.lang-btn.active{background:var(--blue2);color:#fff;}
-.btn-crypto{background:var(--blue2);border:none;color:#fff;padding:7px 15px;border-radius:8px;
-  font-size:.8rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;
-  font-family:'Plus Jakarta Sans','Vazirmatn',sans-serif;transition:background .2s;}
-.btn-crypto:hover{background:var(--blue1);}
-.btn-login{
-  background:var(--w08);border:1px solid var(--w20);color:var(--w85);
-  padding:8px 16px;border-radius:8px;font-size:.85rem;font-weight:600;
-  display:flex;align-items:center;gap:5px;cursor:pointer;transition:all .2s;
-  font-family:'Plus Jakarta Sans','Vazirmatn',sans-serif;
-}
-.btn-login:hover{background:var(--w12);border-color:var(--w40);}
-.btn-login.logged-in{border-color:rgba(22,83,166,.4);color:var(--blue1);}
-.btn-login i{font-size:14px;}
+.lang-accordion{display:flex;gap:10px;justify-content:center;overflow:hidden;
+  max-height:0;opacity:0;transition:max-height .25s ease,opacity .2s ease,margin .25s ease;margin:0;}
+.lang-accordion.open{max-height:60px;opacity:1;margin:.5rem 0;}
+.lang-accordion .lang-btn{background:var(--w08);border:1px solid var(--w20);color:var(--w65);
+  padding:8px 20px;border-radius:8px;font-size:.85rem;font-weight:600;cursor:pointer;transition:all .18s;
+  font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:.04em;}
+.lang-accordion .lang-btn.active{background:var(--blue2);color:#fff;border-color:var(--blue2);}
 .menu-overlay-foot{position:absolute;bottom:28px;display:flex;gap:1rem;align-items:center;color:var(--w40);font-size:.78rem;}
+
+/* ── NAV RIGHT GROUP (user badge + hamburger) ── */
+.nav-right-group{display:flex;align-items:center;gap:10px;order:2;}
+.nav-user{position:relative;}
+.nav-user-btn{background:var(--blue5);border:1px solid rgba(46,115,214,.3);color:var(--blue1);
+  width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all .2s;}
+.nav-user-btn:hover{background:var(--blue4);}
+.nav-user-btn i{font-size:18px;}
+.user-dropdown{position:absolute;top:calc(100% + 8px);right:0;background:#fff;border:1px solid var(--w20);
+  border-radius:10px;box-shadow:0 12px 30px rgba(28,27,24,.12);min-width:150px;overflow:hidden;
+  display:none;z-index:150;}
+.user-dropdown.open{display:block;animation:rise .15s ease;}
+.user-dropdown button{width:100%;background:none;border:none;padding:11px 16px;text-align:right;
+  font-size:.85rem;color:var(--w85);cursor:pointer;display:flex;align-items:center;gap:8px;
+  font-family:'Plus Jakarta Sans','Vazirmatn',sans-serif;transition:background .15s;}
+.user-dropdown button:hover{background:var(--w08);}
+.user-dropdown button i{font-size:16px;color:var(--w65);}
 
 /* ── MOBILE NAV ── */
 @media(max-width:760px){
@@ -301,6 +308,14 @@ body.ltr .menu-overlay-close{right:auto;left:24px;}
 }
 .pay-persist-note i{font-size:15px;color:var(--blue1);flex-shrink:0;margin-top:2px;}
 .pay-persist-note span{font-size:.75rem;color:var(--w65);line-height:1.6;}
+.pay-back-btn{
+  width:100%;background:var(--w08);border:1px solid var(--w20);color:var(--w65);
+  padding:11px;border-radius:10px;margin-top:1rem;
+  font-family:'Plus Jakarta Sans','Vazirmatn',sans-serif;font-size:.85rem;font-weight:600;
+  display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;transition:all .2s;
+}
+.pay-back-btn:hover{background:var(--w12);border-color:var(--w40);color:var(--w);}
+.pay-back-btn i{font-size:16px;}
 
 /* ── PAYMENT FLOW STEPS ── */
 .pay-error{
@@ -388,14 +403,14 @@ body.ltr .lesson-section ul{padding-right:0;padding-left:1.2rem;}
 .lesson-nav-btn.disabled{opacity:.3;pointer-events:none;}
 
 /* ── MOCKUP DETAIL PAGE ── */
-.mockup-detail-wrap{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem;}
-.md-grid{display:grid;grid-template-columns:1fr 1fr;gap:2rem;align-items:start;}
+.mockup-detail-wrap{max-width:1100px;margin:0 auto;padding:2rem 1.5rem 4rem;}
+.md-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:2.5rem;align-items:start;}
 @media(max-width:760px){.md-grid{grid-template-columns:1fr;}}
 .md-preview{
-  border-radius:16px;overflow:hidden;background:var(--w08);border:1px solid var(--w12);
-  aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;
+  border-radius:20px;overflow:hidden;background:var(--w08);
+  aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;
 }
-.md-preview img{width:100%;height:100%;object-fit:contain;background:var(--bone2);}
+.md-preview img{width:100%;height:100%;object-fit:cover;border-radius:20px;background:var(--bone2);}
 .md-preview i{font-size:4rem;color:var(--w40);}
 .md-info h1{font-size:1.5rem;font-weight:700;color:var(--w);margin-bottom:.5rem;}
 .md-cat-badge{
@@ -406,11 +421,13 @@ body.ltr .lesson-section ul{padding-right:0;padding-left:1.2rem;}
 .md-price{font-size:1.8rem;font-weight:700;color:var(--w);}
 .md-free-tag{background:rgba(46,158,107,.15);color:#2E9E6B;font-size:.78rem;font-weight:700;padding:4px 12px;border-radius:8px;}
 .md-buy-btn{
-  width:100%;background:var(--blue2);border:none;color:#fff;padding:14px;border-radius:10px;
-  font-size:1rem;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;
+  width:100%;background:var(--blue2);border:none;color:#fff;padding:12px;border-radius:10px;
+  font-size:1rem;font-weight:700;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
   cursor:pointer;transition:background .2s;margin-bottom:1.5rem;
 }
 .md-buy-btn:hover{background:var(--blue1);}
+.md-buy-btn-main{display:flex;align-items:center;gap:8px;}
+.md-buy-btn-sub{font-size:.72rem;font-weight:500;opacity:.8;}
 .md-section{margin-bottom:1.5rem;}
 .md-section h3{font-size:.92rem;font-weight:700;color:var(--w);margin-bottom:.6rem;}
 .md-section p{font-size:.85rem;color:var(--w65);line-height:1.75;}
@@ -531,9 +548,22 @@ body.ltr .search-bar .search-go{order:2;margin-left:4px;margin-right:0;}
 <div id="app">
 <nav>
   <div class="logo" onclick="goPage('home',document.querySelectorAll('.nav-tab')[0])" style="cursor:pointer;" role="button"><svg class="logo-svg" viewBox="0 0 1280.5 257.9" xmlns="http://www.w3.org/2000/svg"><style>.st0{fill:#354A9F;}.st1{fill:#EE3B95;}.st2{fill:#F18421;}.st3{fill:#231F20;}</style><g><g><rect x="112.8" y="37.8" class="st0" width="25.3" height="25.3"/><rect x="87.5" y="63.1" class="st1" width="25.3" height="25.3"/><rect x="87.5" y="12.8" class="st2" width="25.3" height="25.3"/><rect x="115.8" y="40.9" class="st3" width="25.3" height="25.3"/><rect x="90.6" y="66.2" class="st3" width="25.3" height="25.3"/><rect x="90.6" y="15.6" class="st3" width="25.3" height="25.3"/><g><polygon class="st3" points="191.4,141.7 216.7,141.7 216.7,116.5 191.4,116.5 166.4,116.5 141.1,116.5 115.8,116.5 90.6,116.5 65.3,116.5 40.3,116.5 40.3,141.7 40.3,167 40.3,192.3 65.3,192.3 65.3,217.3 90.6,217.3 90.6,242.6 115.8,242.6 141.1,242.6 141.1,217.3 166.4,217.3 166.4,192.3 191.4,192.3 191.4,167 "/><polygon class="st3" points="216.7,141.7 216.7,167 216.7,192.3 241.9,192.3 241.9,167 241.9,141.7 "/><rect x="191.4" y="192.3" class="st3" width="25.3" height="25.3"/><rect x="15" y="116.5" class="st3" width="25.3" height="25.3"/></g></g><g><path class="st3" d="M306.9,139.9v81.2c0,11.1,9,20.1,20.1,20.1h53.4v-12.8H327c-4,0-7.3-3.3-7.3-7.3v-81.2c0-4,3.3-7.3,7.3-7.3h53.4v-12.8H327C315.9,119.8,306.9,128.8,306.9,139.9z"/><path class="st3" d="M1161.8,220.9c0,4-3.3,7.3-7.3,7.3h-40.1c-4,0-7.3-3.3-7.3-7.3v-60h-12.8v60c0,11.1,9,20.1,20.1,20.1h40.1c11.1,0,20.1-9,20.1-20.1v-60h-12.8V220.9z"/><path class="st3" d="M914.8,181v40.1c0,11.1,9,20.1,20.1,20.1h53.4v-12.8h-53.4c-4,0-7.3-3.3-7.3-7.3V181c0-4,3.3-7.3,7.3-7.3h53.4v-12.8h-53.4C923.7,160.9,914.8,169.9,914.8,181z"/><polygon class="st3" points="1017.3,189.5 1017.3,160.9 1004.5,160.9 1004.5,242.6 1017.3,242.6 1017.3,213.1 1059.3,241.2 1078,241.2 1078,228.4 1063.1,228.4 1022.7,201.3 1065.7,173.6 1078,173.6 1078,160.9 1062.1,160.9 "/><path class="st3" d="M878.4,160.9h-39.7c-11.1,0-20.1,9-20.1,20.1v40.1c0,11.1,9,20.1,20.1,20.1h39.7c11.1,0,20.1-9,20.1-20.1V181C898.5,169.9,889.5,160.9,878.4,160.9z M885.7,221.1c0,4-3.3,7.3-7.3,7.3h-39.7c-4,0-7.3-3.3-7.3-7.3V181c0-4,3.3-7.3,7.3-7.3h39.7c4,0,7.3,3.3,7.3,7.3V221.1z"/><polygon class="st3" points="762.4,145.8 749.5,119.8 722.5,119.8 722.5,241.2 735.3,241.2 735.3,132.5 742.6,132.5 762.4,168.7 782.3,132.5 789.6,132.5 789.6,241.2 802.4,241.2 802.4,119.8 775.4,119.8 "/><path class="st3" d="M651.9,160.9h-39.7c-11.1,0-20.1,9-20.1,20.1v60.2H672v-12.8h-67.1v-17.5H672v-29.8C672,169.9,663,160.9,651.9,160.9z M659,198h-54.1v-17c0-4,3.3-7.3,7.3-7.3h39.7c4,0,7.3,3.3,7.3,7.3v17H659z"/><path class="st3" d="M502.4,181v60.2h12.8v-30.2h41.3v-12.8h-41.3v-17c0-4,3.3-7.3,7.3-7.3h53.4v-12.8h-53.4C511.4,160.9,502.4,169.9,502.4,181z"/><path class="st3" d="M476.5,222.8v-61.9h-59.7c-11.1,0-20.1,9-20.1,20.1v60.2h69l5-6.1l5.9,6.1h9v-12.8h-3.5L476.5,222.8z M463.7,223l-4.3,5.2h-49.8v-47.5c0-4,3.3-7.3,7.3-7.3h47V223H463.7z"/><path class="st3" d="M1250.6,160.9h-59.7v80.1h12.8v-30.2h47c11.1,0,20.1-9,20.1-20.1V181C1270.7,169.9,1261.7,160.9,1250.6,160.9z M1257.9,190.9c0,4-3.3,7.3-7.3,7.3h-47v-24.3h47c4,0,7.3,3.3,7.3,7.3V190.9z"/></g></g></svg></div>
-  <button class="hamburger-btn" onclick="toggleMobileMenu()">
-    <i class="ti ti-menu-2" id="hamburgerIcon"></i>
-  </button>
+  <div class="nav-right-group">
+    <div class="nav-user" id="navUserBadge" style="display:none;">
+      <button class="nav-user-btn" onclick="toggleUserDropdown()">
+        <i class="ti ti-user-check"></i>
+      </button>
+      <div class="user-dropdown" id="userDropdown">
+        <button onclick="performLogout()">
+          <i class="ti ti-logout"></i>
+          <span data-fa="خروج" data-en="Log out">Log out</span>
+        </button>
+      </div>
+    </div>
+    <button class="hamburger-btn" onclick="toggleMobileMenu()">
+      <i class="ti ti-menu-2" id="hamburgerIcon"></i>
+    </button>
+  </div>
 </nav>
 
 <div class="menu-overlay" id="menuOverlay">
@@ -542,16 +572,16 @@ body.ltr .search-bar .search-go{order:2;margin-left:4px;margin-right:0;}
   <button class="menu-overlay-link nav-tab" onclick="goPage('pricing',this);closeMobileMenu()" data-fa="پلن‌ها" data-en="Pricing">Pricing</button>
   <button class="menu-overlay-link nav-tab" onclick="goPage('tutorials',this);closeMobileMenu()" data-fa="آموزش" data-en="Tutorials">Tutorials</button>
   <button class="menu-overlay-link nav-tab" onclick="goPage('about',this);closeMobileMenu()" data-fa="درباره ما" data-en="About">About</button>
-  <div class="menu-overlay-actions">
-    <div class="lang-toggle">
-      <button class="lang-btn" onclick="setLang('fa',this)">FA</button>
-      <button class="lang-btn active" onclick="setLang('en',this)">EN</button>
-    </div>
-    <button class="btn-login" id="navLoginBtn" onclick="handleNavLoginClick()">
-      <i class="ti ti-user-circle" id="navLoginIcon"></i>
-      <span id="navLoginLabel" data-fa="ورود" data-en="Login">Login</span>
-    </button>
+  <button class="menu-overlay-link" onclick="toggleLangAccordion()">
+    <span data-fa="زبان" data-en="Language">Language</span>
+  </button>
+  <div class="lang-accordion" id="langAccordion">
+    <button class="lang-btn" onclick="setLang('fa',this)">FA</button>
+    <button class="lang-btn active" onclick="setLang('en',this)">EN</button>
   </div>
+  <button class="menu-overlay-link" id="menuLoginLink" onclick="handleNavLoginClick()">
+    <span id="menuLoginLabel" data-fa="ورود" data-en="Login">Login</span>
+  </button>
   <div class="menu-overlay-foot">
     <span>hello@cafemockup.com</span>
   </div>
@@ -742,6 +772,10 @@ body.ltr .search-bar .search-go{order:2;margin-left:4px;margin-right:0;}
           <i class="ti ti-info-circle"></i>
           <span data-fa="اگر این صفحه را بستی، نگران نباش — دوباره روی دکمه‌ی «خرید» همین موکاپ بزن و وضعیت پرداختت همینجا ادامه پیدا می‌کند." data-en="If you closed this page, don't worry — just click Buy on this same item again and your payment status will resume here.">If you closed this page, don't worry — just click Buy on this same item again and your payment status will resume here.</span>
         </div>
+        <button class="pay-back-btn" id="payBackBtn" onclick="cancelPaymentAndGoBack()">
+          <i class="ti ti-arrow-left"></i>
+          <span data-fa="تغییر رمزارز / بازگشت" data-en="Change currency / Go back">Change currency / Go back</span>
+        </button>
       </div>
 
       <!-- STEP 3: success -->
@@ -1174,6 +1208,8 @@ function mapDbMockup(row){
     icon: row.icon || 'ti-box',
     image: row.image_url || '',
     downloadUrl: row.download_url || '',
+    descriptionFa: row.description_fa || '',
+    descriptionEn: row.description_en || '',
   };
 }
 
@@ -1233,7 +1269,8 @@ function openMockupDetail(key){
 
   const buyBtnLabel = m.free
     ? (lang==='fa'?'دانلود رایگان':'Free Download')
-    : (lang==='fa'?'خرید با کریپتو':'Buy with Crypto');
+    : (lang==='fa'?'دانلود':'Download');
+  const buyBtnSub = m.free ? '' : (lang==='fa'?'خرید با کریپتو':'Buy with Crypto');
   const buyBtnIcon = m.free ? 'ti-download' : 'ti-currency-bitcoin';
   const buyAction = m.free
     ? `handleFreeDownload('${m.downloadUrl||''}')`
@@ -1249,13 +1286,14 @@ function openMockupDetail(key){
         <h1>${lang==='fa'?m.fa:m.en}</h1>
         <div class="md-price-row">${priceBlock}</div>
         <button class="md-buy-btn" onclick="${buyAction}">
-          <i class="ti ${buyBtnIcon}"></i> ${buyBtnLabel}
+          <span class="md-buy-btn-main"><i class="ti ${buyBtnIcon}"></i> ${buyBtnLabel}</span>
+          ${buyBtnSub ? `<span class="md-buy-btn-sub">${buyBtnSub}</span>` : ''}
         </button>
         <div class="md-section">
           <h3>${lang==='fa'?'توضیحات':'Description'}</h3>
-          <p>${lang==='fa'
+          <p>${(lang==='fa' ? m.descriptionFa : m.descriptionEn) || (lang==='fa'
             ? `یک موکاپ حرفه‌ای با کیفیت بالا، آماده برای استفاده در پروژه‌های ${m.cat==='Product'?'محصول و بسته‌بندی':m.cat==='Branding'?'برندینگ':m.cat==='Mobile'?'دیجیتال و موبایل':'دسکتاپ'}. شامل Smart Object کاملاً قابل‌ویرایش با نورپردازی و سایه‌ی واقع‌گرا.`
-            : `A professional, high-quality mockup ready for ${m.cat.toLowerCase()} projects. Includes a fully editable Smart Object with realistic lighting and shadow.`}</p>
+            : `A professional, high-quality mockup ready for ${m.cat.toLowerCase()} projects. Includes a fully editable Smart Object with realistic lighting and shadow.`)}</p>
         </div>
         <div class="md-section">
           <h3>${lang==='fa'?'مشخصات فایل':'File Details'}</h3>
@@ -1326,41 +1364,62 @@ function requireEmail(action){
   }
 }
 
-// Top-nav Login/Account button: shows current state and lets the user log in, change email, or log out
+// Menu-overlay Login/Logout link: shows current state and lets the user log in or log out
 function updateNavLoginButton(){
-  const btn = document.getElementById('navLoginBtn');
-  const icon = document.getElementById('navLoginIcon');
-  const label = document.getElementById('navLoginLabel');
-  if(!btn) return;
+  const label = document.getElementById('menuLoginLabel');
+  const badge = document.getElementById('navUserBadge');
   const email = getSavedEmail();
-  if(email && isValidEmail(email)){
-    btn.classList.add('logged-in');
-    icon.className = 'ti ti-user-check';
-    label.textContent = email.split('@')[0];
-    label.dataset.fa = email.split('@')[0];
-    label.dataset.en = email.split('@')[0];
-  } else {
-    btn.classList.remove('logged-in');
-    icon.className = 'ti ti-user-circle';
-    label.textContent = lang === 'fa' ? 'ورود' : 'Login';
-    label.dataset.fa = 'ورود';
-    label.dataset.en = 'Login';
+  const loggedIn = !!(email && isValidEmail(email));
+  if(label){
+    if(loggedIn){
+      label.textContent = lang === 'fa' ? 'خروج' : 'Logout';
+      label.dataset.fa = 'خروج';
+      label.dataset.en = 'Logout';
+    } else {
+      label.textContent = lang === 'fa' ? 'ورود' : 'Login';
+      label.dataset.fa = 'ورود';
+      label.dataset.en = 'Login';
+    }
   }
+  if(badge){
+    badge.style.display = loggedIn ? 'flex' : 'none';
+  }
+  if(!loggedIn) closeUserDropdown();
 }
 
 function handleNavLoginClick(){
   const email = getSavedEmail();
   if(email && isValidEmail(email)){
-    const msg = lang === 'fa'
-      ? `وارد شده با: ${email}\n\nآیا می‌خواهید خارج شوید؟`
-      : `Logged in as: ${email}\n\nDo you want to log out?`;
-    if(confirm(msg)){
-      try { localStorage.removeItem('mc_user_email'); } catch(e) {}
-      updateNavLoginButton();
-    }
+    try { localStorage.removeItem('mc_user_email'); } catch(e) {}
+    updateNavLoginButton();
   } else {
     openEmailModal(() => updateNavLoginButton());
   }
+}
+
+// Small dropdown next to the hamburger button, shown only when logged in
+function toggleUserDropdown(){
+  const dd = document.getElementById('userDropdown');
+  if(dd) dd.classList.toggle('open');
+}
+function closeUserDropdown(){
+  const dd = document.getElementById('userDropdown');
+  if(dd) dd.classList.remove('open');
+}
+function performLogout(){
+  try { localStorage.removeItem('mc_user_email'); } catch(e) {}
+  updateNavLoginButton();
+  closeUserDropdown();
+}
+document.addEventListener('click', function(e){
+  const badge = document.getElementById('navUserBadge');
+  if(badge && !badge.contains(e.target)) closeUserDropdown();
+});
+
+// Accordion for language selection inside the hamburger menu overlay
+function toggleLangAccordion(){
+  const acc = document.getElementById('langAccordion');
+  if(acc) acc.classList.toggle('open');
 }
 
 function handleFreeDownload(url){
@@ -1377,6 +1436,9 @@ function handleBuyMockup(price, name, downloadUrl){
     return;
   }
   requireEmail(() => {
+    // Clear any stale pending payment from a previous item so the currency step always shows first
+    if (paymentPollInterval) clearInterval(paymentPollInterval);
+    clearPendingPayment();
     // Store the pending download so we can release it after payment confirms
     pendingDownloadUrl = downloadUrl;
     setPaymentOrder(parseFloat(price), name);
@@ -1716,6 +1778,19 @@ function pollPaymentStatus(paymentId) {
       console.error('Status check failed', err);
     }
   }, 10000); // check every 10 seconds
+}
+
+// Lets the user abandon the current pending payment and pick a different currency.
+// Note: NowPayments has no "cancel" API for an already-created payment address — it simply
+// expires on its own if unpaid. This just stops tracking it locally so the UI can move on.
+function cancelPaymentAndGoBack() {
+  if (paymentPollInterval) clearInterval(paymentPollInterval);
+  clearPendingPayment();
+  document.getElementById('payStepAddress').style.display = 'none';
+  document.getElementById('payStepSuccess').style.display = 'none';
+  document.getElementById('payStepChoose').style.display = 'block';
+  document.getElementById('payActionBtn').disabled = false;
+  document.getElementById('payError').style.display = 'none';
 }
 
 function copyAddress() {
