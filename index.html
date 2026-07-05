@@ -241,9 +241,7 @@ body.ltr .menu-overlay-close{right:auto;left:24px;}
 .coming-soon-wrap h3{font-size:1.05rem;font-weight:700;color:var(--w);margin-bottom:.6rem;}
 .coming-soon-wrap p{font-size:.85rem;color:var(--w65);line-height:1.7;margin-bottom:1.25rem;}
 
-.plans-disabled{opacity:.45;filter:grayscale(.3);pointer-events:none;}
-.plans-disabled .plan-btn-outline,
-.plans-disabled .plan-btn-solid{cursor:not-allowed;}
+.plan-btn-outline:disabled,.plan-btn-solid:disabled{opacity:.5;cursor:not-allowed;}
 
 .plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
   gap:1px;background:var(--w08);border-top:1px solid var(--w08);border-bottom:1px solid var(--w08);}
@@ -677,43 +675,7 @@ body.ltr .search-bar .search-go{order:2;margin-left:4px;margin-right:0;}
     </button>
   </div>
 
-  <div class="plans plans-disabled">
-    <div class="plan">
-      <div class="plan-tag"><i class="ti ti-coffee"></i><span data-fa="رایگان" data-en="Free">Free</span></div>
-      <div class="plan-name">Free Brew</div>
-      <div class="plan-price"><sup>$</sup>0<sub data-fa="/ماه" data-en="/mo">/mo</sub></div>
-      <ul class="plan-ul">
-        <li><i class="ti ti-check"></i><span data-fa="۲۰ موکاپ رایگان" data-en="20 free mockups">20 free mockups</span></li>
-        <li><i class="ti ti-check"></i><span data-fa="کیفیت استاندارد" data-en="Standard quality">Standard quality</span></li>
-        <li><i class="ti ti-check"></i><span data-fa="استفاده شخصی" data-en="Personal use">Personal use</span></li>
-      </ul>
-      <button class="plan-btn-outline" disabled data-fa="به‌زودی" data-en="Coming Soon">Coming Soon</button>
-    </div>
-    <div class="plan best">
-      <div class="plan-tag"><i class="ti ti-star"></i><span data-fa="پرفروش‌ترین" data-en="Best Seller">Best Seller</span></div>
-      <div class="plan-name">Pro Espresso</div>
-      <div class="plan-price"><sup>$</sup>12<sub data-fa="/ماه" data-en="/mo">/mo</sub></div>
-      <ul class="plan-ul">
-        <li><i class="ti ti-check"></i><span data-fa="۲۴۰+ موکاپ" data-en="240+ mockups">240+ mockups</span></li>
-        <li><i class="ti ti-check"></i><span data-fa="فایل PSD کیفیت 4K" data-en="4K PSD files">4K PSD files</span></li>
-        <li><i class="ti ti-check"></i><span data-fa="لایسنس تجاری" data-en="Commercial license">Commercial license</span></li>
-        <li><i class="ti ti-check"></i><span data-fa="آپدیت ماهانه" data-en="Monthly updates">Monthly updates</span></li>
-      </ul>
-      <button class="plan-btn-solid" disabled data-fa="به‌زودی" data-en="Coming Soon">Coming Soon</button>
-    </div>
-    <div class="plan">
-      <div class="plan-tag"><i class="ti ti-building"></i><span data-fa="تیمی" data-en="Team">Team</span></div>
-      <div class="plan-name">Roastery</div>
-      <div class="plan-price"><sup>$</sup>29<sub data-fa="/ماه" data-en="/mo">/mo</sub></div>
-      <ul class="plan-ul">
-        <li><i class="ti ti-check"></i><span data-fa="۵ صندلی تیمی" data-en="5 team seats">5 team seats</span></li>
-        <li><i class="ti ti-check"></i><span data-fa="همه امکانات Pro" data-en="All Pro features">All Pro features</span></li>
-        <li><i class="ti ti-check"></i><span data-fa="موکاپ سفارشی" data-en="Custom mockups">Custom mockups</span></li>
-        <li><i class="ti ti-check"></i><span data-fa="دسترسی API" data-en="API access">API access</span></li>
-      </ul>
-      <button class="plan-btn-outline" disabled data-fa="به‌زودی" data-en="Coming Soon">Coming Soon</button>
-    </div>
-  </div>
+  <div class="plans" id="plansGrid"></div>
 </div>
 
 <!-- PAYMENT -->
@@ -1225,6 +1187,76 @@ async function loadMockupsFromDatabase(){
     mockups = FALLBACK_MOCKUPS;
   }
   renderMockups(mockups,'mainGrid');
+}
+
+// Hardcoded fallback plans — shown only if the live database can't be reached
+const FALLBACK_PLANS=[
+  {tag_fa:'رایگان',tag_en:'Free',tag_icon:'ti-coffee',name:'Free Brew',price:0,period_fa:'/ماه',period_en:'/mo',
+   features:[{fa:'۲۰ موکاپ رایگان',en:'20 free mockups'},{fa:'کیفیت استاندارد',en:'Standard quality'},{fa:'استفاده شخصی',en:'Personal use'}],
+   button_label_fa:'به‌زودی',button_label_en:'Coming Soon',is_best:false,is_disabled:true},
+  {tag_fa:'پرفروش‌ترین',tag_en:'Best Seller',tag_icon:'ti-star',name:'Pro Espresso',price:12,period_fa:'/ماه',period_en:'/mo',
+   features:[{fa:'۲۴۰+ موکاپ',en:'240+ mockups'},{fa:'فایل PSD کیفیت 4K',en:'4K PSD files'},{fa:'لایسنس تجاری',en:'Commercial license'},{fa:'آپدیت ماهانه',en:'Monthly updates'}],
+   button_label_fa:'به‌زودی',button_label_en:'Coming Soon',is_best:true,is_disabled:true},
+  {tag_fa:'تیمی',tag_en:'Team',tag_icon:'ti-building',name:'Roastery',price:29,period_fa:'/ماه',period_en:'/mo',
+   features:[{fa:'۵ صندلی تیمی',en:'5 team seats'},{fa:'همه امکانات Pro',en:'All Pro features'},{fa:'موکاپ سفارشی',en:'Custom mockups'},{fa:'دسترسی API',en:'API access'}],
+   button_label_fa:'به‌زودی',button_label_en:'Coming Soon',is_best:false,is_disabled:true},
+];
+
+let plans = [];
+
+// Converts a database row (features_json as a string) into the shape the renderer expects (features as an array)
+function mapDbPlan(row){
+  let features = [];
+  try { features = JSON.parse(row.features_json || '[]'); } catch(e) { features = []; }
+  return {
+    id: row.id,
+    tag_fa: row.tag_fa || '',
+    tag_en: row.tag_en || '',
+    tag_icon: row.tag_icon || 'ti-coffee',
+    name: row.name,
+    price: row.price || 0,
+    period_fa: row.period_fa || '/ماه',
+    period_en: row.period_en || '/mo',
+    features: features,
+    button_label_fa: row.button_label_fa || 'به‌زودی',
+    button_label_en: row.button_label_en || 'Coming Soon',
+    is_best: !!row.is_best,
+    is_disabled: !!row.is_disabled,
+  };
+}
+
+async function loadPlansFromDatabase(){
+  try {
+    const res = await fetch(`${ADMIN_API_URL}/api/public/plans`);
+    if(!res.ok) throw new Error('Bad response');
+    const rows = await res.json();
+    if(!Array.isArray(rows) || rows.length === 0) throw new Error('Empty response');
+    plans = rows.map(mapDbPlan);
+  } catch(e){
+    console.error('Could not load live plans, using fallback:', e);
+    plans = FALLBACK_PLANS;
+  }
+  renderPlans();
+}
+
+function renderPlans(){
+  const grid = document.getElementById('plansGrid');
+  if(!grid) return;
+  grid.innerHTML = plans.map(function(p){
+    const featuresHtml = p.features.map(function(f){
+      return '<li><i class="ti ti-check"></i><span>' + (lang==='fa' ? f.fa : f.en) + '</span></li>';
+    }).join('');
+    const btnClass = p.is_best ? 'plan-btn-solid' : 'plan-btn-outline';
+    const btnLabel = lang==='fa' ? p.button_label_fa : p.button_label_en;
+    const disabledAttr = p.is_disabled ? 'disabled' : '';
+    return '<div class="plan' + (p.is_best ? ' best' : '') + '">' +
+      '<div class="plan-tag"><i class="ti ' + p.tag_icon + '"></i><span>' + (lang==='fa' ? p.tag_fa : p.tag_en) + '</span></div>' +
+      '<div class="plan-name">' + p.name + '</div>' +
+      '<div class="plan-price"><sup>$</sup>' + p.price + '<sub>' + (lang==='fa' ? p.period_fa : p.period_en) + '</sub></div>' +
+      '<ul class="plan-ul">' + featuresHtml + '</ul>' +
+      '<button class="' + btnClass + '" ' + disabledAttr + '>' + btnLabel + '</button>' +
+      '</div>';
+  }).join('');
 }
 // Registry so any rendered mockup card (from gallery, search, or home) can be looked up by name for the detail page
 const mockupRegistry = {};
@@ -1835,6 +1867,7 @@ function setLang(l,btn){
     if(t)b.textContent=t;
   });
   renderMockups(mockups,'mainGrid');
+  renderPlans();
   if(document.getElementById('searchResults').classList.contains('show')){
     const v=document.getElementById('searchInput').value;
     if(v)doSearch(v);
@@ -1849,6 +1882,7 @@ function setLang(l,btn){
 
 /* ─── INIT ─── */
 loadMockupsFromDatabase();
+loadPlansFromDatabase();
 updateNavLoginButton();
 
 const emailModalInputEl = document.getElementById('emailModalInput');
