@@ -497,7 +497,23 @@ body.ltr .lesson-section ul{padding-right:0;padding-left:1.2rem;}
 .upscaler-compare-col{background:#fff;border:1px solid var(--w12);border-radius:14px;padding:.75rem;text-align:center;}
 .upscaler-compare-label{display:block;font-size:.72rem;font-weight:700;text-transform:uppercase;
   letter-spacing:.05em;color:var(--w40);margin-bottom:.5rem;}
-.upscaler-compare-col img{width:100%;border-radius:10px;background:var(--bone2);object-fit:contain;max-height:260px;}
+.upscaler-compare-col img{width:100%;border-radius:10px;background:var(--bone2);object-fit:contain;max-height:260px;cursor:zoom-in;}
+.upscaler-size-row{display:flex;align-items:center;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:1.25rem;}
+.upscaler-size-label{font-size:.85rem;color:var(--w65);font-weight:600;}
+.upscaler-size-btn{background:var(--w08);border:1.5px solid var(--w20);color:var(--w65);
+  padding:8px 18px;border-radius:10px;font-size:.9rem;font-weight:700;cursor:pointer;transition:all .18s;
+  font-family:'Plus Jakarta Sans','Vazirmatn',sans-serif;}
+.upscaler-size-btn:hover{border-color:var(--blue2);}
+.upscaler-size-btn.active{background:var(--blue2);color:#fff;border-color:var(--blue2);}
+.upscaler-payment-box{background:var(--blue5);border:1px solid rgba(46,115,214,.3);border-radius:14px;
+  padding:1.5rem;text-align:center;margin-top:1.25rem;}
+.upscaler-payment-box i{font-size:1.8rem;color:var(--blue1);margin-bottom:.75rem;display:block;}
+.upscaler-payment-box p{font-size:.9rem;color:var(--w85);margin-bottom:1rem;line-height:1.7;}
+.upscaler-zoom-hint{text-align:center;font-size:.78rem;color:var(--w40);margin-bottom:.75rem;}
+.upscaler-lightbox{position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.85);
+  display:none;align-items:center;justify-content:center;padding:2rem;cursor:zoom-out;}
+.upscaler-lightbox.open{display:flex;}
+.upscaler-lightbox img{max-width:100%;max-height:100%;border-radius:8px;object-fit:contain;}
 
 /* ── SEARCH RESULTS ── */
 .s-results{padding:1.5rem 2rem;display:none;}
@@ -773,10 +789,10 @@ body.ltr .search-bar .search-go{order:2;margin-left:4px;margin-right:0;}
       <div class="pay-inner" id="payStepSuccess" style="display:none;text-align:center;">
         <div class="pay-success-icon"><i class="ti ti-circle-check"></i></div>
         <div class="pay-success-title" data-fa="پرداخت با موفقیت تأیید شد!" data-en="Payment confirmed!">Payment confirmed!</div>
-        <p class="pay-success-sub" data-fa="فایل شما آماده است." data-en="Your file is ready.">Your file is ready.</p>
-        <button class="btn-gold" id="payDownloadBtn" style="margin-top:1rem;width:100%;" onclick="if(pendingDownloadUrl) window.open(pendingDownloadUrl,'_blank')">
+        <p class="pay-success-sub" id="paySuccessSub" data-fa="فایل شما آماده است." data-en="Your file is ready.">Your file is ready.</p>
+        <button class="btn-gold" id="payDownloadBtn" style="margin-top:1rem;width:100%;" onclick="handlePaySuccessAction()">
           <i class="ti ti-download"></i>
-          <span data-fa="دانلود فایل" data-en="Download File">Download File</span>
+          <span id="payDownloadBtnLabel" data-fa="دانلود فایل" data-en="Download File">Download File</span>
         </button>
       </div>
     </div>
@@ -858,7 +874,7 @@ body.ltr .search-bar .search-go{order:2;margin-left:4px;margin-right:0;}
   <div class="upscaler-wrap">
     <div class="upscaler-head">
       <h2 data-fa="بهبود کیفیت تصویر با هوش مصنوعی" data-en="AI Image Upscaler">AI Image Upscaler</h2>
-      <p data-fa="عکس یا طرحت رو آپلود کن تا با هوش مصنوعی تا ۸ مگاپیکسل بزرگ و شارپ‌تر شود." data-en="Upload your image and let AI enhance it up to 8 megapixels.">Upload your image and let AI enhance it up to 8 megapixels.</p>
+      <p data-fa="عکس یا طرحت رو آپلود کن تا با هوش مصنوعی بزرگ و شارپ‌تر شود. اولین استفاده رایگان است." data-en="Upload your image and let AI enhance it. Your first use is free.">Upload your image and let AI enhance it. Your first use is free.</p>
     </div>
 
     <div class="upscaler-box" id="upscalerDropZone">
@@ -866,10 +882,16 @@ body.ltr .search-bar .search-go{order:2;margin-left:4px;margin-right:0;}
       <div id="upscalerEmptyState" class="upscaler-empty" onclick="document.getElementById('upscalerFileInput').click()">
         <i class="ti ti-cloud-upload"></i>
         <p data-fa="برای آپلود کلیک کن یا فایل رو بکش اینجا" data-en="Click to upload or drag a file here">Click to upload or drag a file here</p>
-        <span data-fa="JPG، PNG یا WEBP — حداکثر ۱۰ مگابایت" data-en="JPG, PNG or WEBP — max 10MB">JPG, PNG or WEBP — max 10MB</span>
+        <span data-fa="JPG، PNG یا WEBP — حداکثر ۲۰ مگابایت" data-en="JPG, PNG or WEBP — max 20MB">JPG, PNG or WEBP — max 20MB</span>
       </div>
       <div id="upscalerPreviewState" style="display:none;">
         <img id="upscalerPreviewImg" alt="preview">
+        <div class="upscaler-size-row">
+          <span class="upscaler-size-label" data-fa="میزان بزرگ‌نمایی:" data-en="Upscale size:">Upscale size:</span>
+          <button class="upscaler-size-btn active" data-size="2" onclick="selectUpscaleSize(2,this)">2×</button>
+          <button class="upscaler-size-btn" data-size="4" onclick="selectUpscaleSize(4,this)">4×</button>
+          <button class="upscaler-size-btn" data-size="8" onclick="selectUpscaleSize(8,this)">8×</button>
+        </div>
         <div class="upscaler-actions">
           <button class="btn-gold" id="upscalerRunBtn" onclick="runUpscale()">
             <i class="ti ti-sparkles"></i>
@@ -890,15 +912,25 @@ body.ltr .search-bar .search-go{order:2;margin-left:4px;margin-right:0;}
 
     <div class="pay-error" id="upscalerError" style="display:none;"></div>
 
+    <div class="upscaler-payment-box" id="upscalerPaymentBox" style="display:none;">
+      <i class="ti ti-lock"></i>
+      <p data-fa="استفاده‌ی رایگان شما تمام شده است. برای ادامه‌ی استفاده از Upscaler، لطفاً هزینه‌ی آن را با کریپتو پرداخت کنید." data-en="Your free upscale has been used. Please pay to continue using the Upscaler.">Your free upscale has been used. Please pay to continue using the Upscaler.</p>
+      <button class="btn-gold" onclick="goToUpscalePayment()">
+        <i class="ti ti-currency-bitcoin"></i>
+        <span data-fa="پرداخت و ادامه" data-en="Pay & Continue">Pay & Continue</span>
+      </button>
+    </div>
+
     <div class="upscaler-result" id="upscalerResult" style="display:none;">
+      <p class="upscaler-zoom-hint" data-fa="روی تصویر کلیک کن تا بزرگ‌تر ببینی و جزئیات رو مقایسه کنی" data-en="Click an image to zoom in and compare details">Click an image to zoom in and compare details</p>
       <div class="upscaler-compare">
         <div class="upscaler-compare-col">
           <span class="upscaler-compare-label" data-fa="قبل" data-en="Before">Before</span>
-          <img id="upscalerBeforeImg" alt="before">
+          <img id="upscalerBeforeImg" alt="before" onclick="openUpscalerZoom(this.src)">
         </div>
         <div class="upscaler-compare-col">
           <span class="upscaler-compare-label" data-fa="بعد" data-en="After">After</span>
-          <img id="upscalerAfterImg" alt="after">
+          <img id="upscalerAfterImg" alt="after" onclick="openUpscalerZoom(this.src)">
         </div>
       </div>
       <button class="btn-gold" id="upscalerDownloadBtn" style="width:100%;margin-top:1.25rem;">
@@ -907,6 +939,11 @@ body.ltr .search-bar .search-go{order:2;margin-left:4px;margin-right:0;}
       </button>
     </div>
   </div>
+</div>
+
+<!-- UPSCALER ZOOM LIGHTBOX -->
+<div class="upscaler-lightbox" id="upscalerLightbox" onclick="closeUpscalerZoom()">
+  <img id="upscalerLightboxImg" alt="zoom">
 </div>
 
 <!-- EMAIL CAPTURE MODAL — required before any download (free or paid) -->
@@ -1389,6 +1426,13 @@ function renderAboutPage(){
 /* ══ IMAGE UPSCALER ══ */
 let upscalerSelectedFile = null;
 let upscalerResultUrl = null;
+let upscalerSelectedSize = 2;
+
+function selectUpscaleSize(size, btn){
+  upscalerSelectedSize = size;
+  document.querySelectorAll('.upscaler-size-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
 
 function handleUpscalerFileSelect(files){
   if(!files || !files.length) return;
@@ -1398,8 +1442,8 @@ function handleUpscalerFileSelect(files){
     showUpscalerError(lang==='fa' ? 'فقط فایل JPG، PNG یا WEBP قابل قبول است.' : 'Only JPG, PNG or WEBP files are supported.');
     return;
   }
-  if(file.size > 10 * 1024 * 1024){
-    showUpscalerError(lang==='fa' ? 'حجم فایل نباید بیشتر از ۱۰ مگابایت باشد.' : 'File size must not exceed 10MB.');
+  if(file.size > 20 * 1024 * 1024){
+    showUpscalerError(lang==='fa' ? 'حجم فایل نباید بیشتر از ۲۰ مگابایت باشد.' : 'File size must not exceed 20MB.');
     return;
   }
   upscalerSelectedFile = file;
@@ -1410,6 +1454,7 @@ function handleUpscalerFileSelect(files){
     document.getElementById('upscalerPreviewState').style.display = 'block';
     document.getElementById('upscalerError').style.display = 'none';
     document.getElementById('upscalerResult').style.display = 'none';
+    document.getElementById('upscalerPaymentBox').style.display = 'none';
   };
   reader.readAsDataURL(file);
 }
@@ -1424,6 +1469,7 @@ function resetUpscaler(){
   document.getElementById('upscalerStatus').style.display = 'none';
   document.getElementById('upscalerError').style.display = 'none';
   document.getElementById('upscalerResult').style.display = 'none';
+  document.getElementById('upscalerPaymentBox').style.display = 'none';
 }
 
 function showUpscalerError(msg){
@@ -1432,22 +1478,46 @@ function showUpscalerError(msg){
   box.style.display = 'block';
 }
 
+function openUpscalerZoom(src){
+  document.getElementById('upscalerLightboxImg').src = src;
+  document.getElementById('upscalerLightbox').classList.add('open');
+}
+function closeUpscalerZoom(){
+  document.getElementById('upscalerLightbox').classList.remove('open');
+}
+
 async function runUpscale(){
   if(!upscalerSelectedFile) return;
+  requireEmail(function(email){
+    performUpscale(email);
+  });
+}
+
+async function performUpscale(email){
   const runBtn = document.getElementById('upscalerRunBtn');
   document.getElementById('upscalerError').style.display = 'none';
   document.getElementById('upscalerResult').style.display = 'none';
+  document.getElementById('upscalerPaymentBox').style.display = 'none';
   document.getElementById('upscalerStatus').style.display = 'flex';
   runBtn.disabled = true;
 
   try {
     const formData = new FormData();
     formData.append('image', upscalerSelectedFile);
+    formData.append('email', email);
+    formData.append('size', String(upscalerSelectedSize));
 
     const res = await fetch(`${ADMIN_API_URL}/api/upscale`, {
       method: 'POST',
       body: formData,
     });
+
+    if(res.status === 402){
+      document.getElementById('upscalerStatus').style.display = 'none';
+      document.getElementById('upscalerPaymentBox').style.display = 'block';
+      runBtn.disabled = false;
+      return;
+    }
 
     if(!res.ok){
       let errData = {};
@@ -1465,7 +1535,7 @@ async function runUpscale(){
     downloadBtn.onclick = function(){
       const a = document.createElement('a');
       a.href = upscalerResultUrl;
-      a.download = 'upscaled.png';
+      a.download = 'upscaled.webp';
       a.click();
     };
     document.getElementById('upscalerStatus').style.display = 'none';
@@ -1479,6 +1549,17 @@ async function runUpscale(){
   } finally {
     runBtn.disabled = false;
   }
+}
+
+function goToUpscalePayment(){
+  const email = getSavedEmail();
+  if(!email){
+    requireEmail(function(){ goToUpscalePayment(); });
+    return;
+  }
+  upscaleOrderEmail = email;
+  setPaymentOrder(3, 'Upscaler additional use');
+  goPage('payment', null);
 }
 
 // Registry so any rendered mockup card (from gallery, search, or home) can be looked up by name for the detail page
@@ -1694,6 +1775,7 @@ function handleBuyMockup(price, name, downloadUrl){
     // Clear any stale pending payment from a previous item so the currency step always shows first
     if (paymentPollInterval) clearInterval(paymentPollInterval);
     clearPendingPayment();
+    upscaleOrderEmail = null;
     // Store the pending download so we can release it after payment confirms
     pendingDownloadUrl = downloadUrl;
     setPaymentOrder(parseFloat(price), name);
@@ -1868,6 +1950,7 @@ let currentOrderAmount = 25;
 let currentOrderDescription = 'Pro Espresso Plan - 1 Month';
 let paymentPollInterval = null;
 let pendingDownloadUrl = null;
+let upscaleOrderEmail = null;
 
 function savePendingPayment(paymentId, downloadUrl, amount, description) {
   try {
@@ -1908,7 +1991,7 @@ async function resumePendingPaymentIfAny() {
       clearPendingPayment();
       document.getElementById('payStepChoose').style.display = 'none';
       document.getElementById('payStepAddress').style.display = 'none';
-      document.getElementById('payStepSuccess').style.display = 'block';
+      showPaymentSuccess();
       return;
     }
     if (data.payment_status === 'failed' || data.payment_status === 'expired') {
@@ -1945,13 +2028,17 @@ async function startPayment() {
   }, 15000);
 
   try {
+    const orderId = upscaleOrderEmail
+      ? 'upscale_' + encodeURIComponent(upscaleOrderEmail) + '_' + Date.now()
+      : 'mockupcafe_' + Date.now();
+
     const res = await fetch(`${PAYMENT_WORKER_URL}/api/create-payment`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         price_amount: currentOrderAmount,
         pay_currency: selectedCurrency,
-        order_id: 'mockupcafe_' + Date.now(),
+        order_id: orderId,
         order_description: currentOrderDescription,
       }),
     });
@@ -2004,6 +2091,34 @@ async function startPayment() {
   }
 }
 
+function showPaymentSuccess(){
+  const sub = document.getElementById('paySuccessSub');
+  const btnLabel = document.getElementById('payDownloadBtnLabel');
+  if(upscaleOrderEmail){
+    sub.dataset.fa = 'اعتبار شما اضافه شد. حالا می‌تونی به صفحه‌ی Upscaler برگردی و دوباره تلاش کنی.';
+    sub.dataset.en = 'Your credit has been added. Go back to the Upscaler page and try again.';
+    btnLabel.dataset.fa = 'بازگشت به Upscaler';
+    btnLabel.dataset.en = 'Back to Upscaler';
+  } else {
+    sub.dataset.fa = 'فایل شما آماده است.';
+    sub.dataset.en = 'Your file is ready.';
+    btnLabel.dataset.fa = 'دانلود فایل';
+    btnLabel.dataset.en = 'Download File';
+  }
+  sub.textContent = lang === 'fa' ? sub.dataset.fa : sub.dataset.en;
+  btnLabel.textContent = lang === 'fa' ? btnLabel.dataset.fa : btnLabel.dataset.en;
+  document.getElementById('payStepSuccess').style.display = 'block';
+}
+
+function handlePaySuccessAction(){
+  if(upscaleOrderEmail){
+    upscaleOrderEmail = null;
+    goPage('upscaler', document.querySelectorAll('.nav-tab')[4]);
+  } else if(pendingDownloadUrl){
+    window.open(pendingDownloadUrl, '_blank');
+  }
+}
+
 function pollPaymentStatus(paymentId) {
   if (paymentPollInterval) clearInterval(paymentPollInterval);
 
@@ -2016,7 +2131,7 @@ function pollPaymentStatus(paymentId) {
         clearInterval(paymentPollInterval);
         clearPendingPayment();
         document.getElementById('payStepAddress').style.display = 'none';
-        document.getElementById('payStepSuccess').style.display = 'block';
+        showPaymentSuccess();
       }
       // statuses: waiting, confirming, confirmed, finished, failed, expired
       if (data.payment_status === 'failed' || data.payment_status === 'expired') {
