@@ -406,10 +406,19 @@ body.ltr .lesson-section ul{padding-right:0;padding-left:1.2rem;}
 @media(max-width:760px){.md-grid{grid-template-columns:1fr;}}
 .md-preview{
   border-radius:20px;overflow:hidden;background:var(--w08);
-  aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;
+  display:flex;align-items:center;justify-content:center;
+  width:100%;
 }
-.md-preview img{width:100%;height:100%;object-fit:cover;border-radius:20px;background:var(--bone2);}
+.md-preview img{width:100%;height:auto;display:block;border-radius:20px;}
 .md-preview i{font-size:4rem;color:var(--w40);}
+.md-thumbs{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;}
+.md-thumb-item{
+  width:64px;height:64px;border-radius:9px;overflow:hidden;cursor:pointer;
+  border:2px solid transparent;background:var(--w08);flex-shrink:0;transition:border-color .18s;
+}
+.md-thumb-item img{width:100%;height:100%;object-fit:cover;display:block;}
+.md-thumb-item.active{border-color:var(--blue2);}
+.md-thumb-item:hover{border-color:var(--w20);}
 .md-info h1{font-size:1.5rem;font-weight:700;color:var(--w);margin-bottom:.5rem;}
 .md-cat-badge{
   display:inline-block;font-size:.75rem;color:var(--w65);
@@ -1146,10 +1155,10 @@ function openLesson(num){
 
 // Hardcoded fallback mockups — shown only if the live database can't be reached
 const FALLBACK_MOCKUPS=[
-  {fa:'iPhone 15 Pro Clay',en:'iPhone 15 Pro Clay',cat:'Mobile',free:true,price:'Free',icon:'ti-device-mobile'},
-  {fa:'MacBook Pro Workspace',en:'MacBook Pro Workspace',cat:'Desktop',free:false,price:'$25',icon:'ti-device-laptop'},
-  {fa:'جعبه هدیه پریمیوم',en:'Gift Box Premium',cat:'Product',free:false,price:'$25',icon:'ti-box'},
-  {fa:'کارت ویزیت فلت',en:'Business Card Flat',cat:'Branding',free:true,price:'Free',icon:'ti-id-badge'},
+  {fa:'iPhone 15 Pro Clay',en:'iPhone 15 Pro Clay',cat:'Mobile',free:true,price:'Free',icon:'ti-device-mobile',galleryImages:[]},
+  {fa:'MacBook Pro Workspace',en:'MacBook Pro Workspace',cat:'Desktop',free:false,price:'$25',icon:'ti-device-laptop',galleryImages:[]},
+  {fa:'جعبه هدیه پریمیوم',en:'Gift Box Premium',cat:'Product',free:false,price:'$25',icon:'ti-box',galleryImages:[]},
+  {fa:'کارت ویزیت فلت',en:'Business Card Flat',cat:'Branding',free:true,price:'Free',icon:'ti-id-badge',galleryImages:[]},
 ];
 
 const ADMIN_API_URL = 'https://cafemockup-admin.rokhsar-nft.workers.dev';
@@ -1160,6 +1169,8 @@ let lang='en';
 // Converts a database row (name_fa, name_en, is_free, price as number, image_url, download_url)
 // into the shape the rest of the site's rendering code expects (fa, en, free, price as "$25" string, image, downloadUrl)
 function mapDbMockup(row){
+  let galleryImages = [];
+  try { galleryImages = JSON.parse(row.gallery_images_json || '[]'); } catch(e) { galleryImages = []; }
   return {
     id: row.id,
     fa: row.name_fa,
@@ -1172,6 +1183,7 @@ function mapDbMockup(row){
     downloadUrl: row.download_url || '',
     descriptionFa: row.description_fa || '',
     descriptionEn: row.description_en || '',
+    galleryImages: Array.isArray(galleryImages) ? galleryImages : [],
   };
 }
 
@@ -1295,6 +1307,8 @@ function openMockupDetail(key){
   if(!m) return;
   const c = document.getElementById('mockupDetailContent');
 
+  const allImages = [m.image, ...(m.galleryImages||[])].filter(function(url){ return !!url; });
+
   const priceBlock = m.free
     ? `<span class="md-free-tag">${lang==='fa'?'رایگان':'Free'}</span>`
     : `<span class="md-price">${m.price}</span>`;
@@ -1308,10 +1322,19 @@ function openMockupDetail(key){
     ? `handleFreeDownload('${m.downloadUrl||''}')`
     : `handleBuyMockup('${m.price.replace('$','')}','${(lang==='fa'?m.fa:m.en).replace(/'/g,"\\'")}','${m.downloadUrl||''}')`;
 
+  const thumbsHtml = allImages.length > 1
+    ? `<div class="md-thumbs">${allImages.map(function(src, i){
+        return `<div class="md-thumb-item${i===0?' active':''}" onclick="switchMockupImage(this,'${src}')"><img src="${src}" alt="thumb ${i+1}"></div>`;
+      }).join('')}</div>`
+    : '';
+
   c.innerHTML = `
     <div class="md-grid">
-      <div class="md-preview">
-        ${m.image ? `<img src="${m.image}" alt="${lang==='fa'?m.fa:m.en}">` : `<i class="ti ${m.icon}"></i>`}
+      <div>
+        <div class="md-preview">
+          ${allImages[0] ? `<img id="mdMainImage" src="${allImages[0]}" alt="${lang==='fa'?m.fa:m.en}">` : `<i class="ti ${m.icon}"></i>`}
+        </div>
+        ${thumbsHtml}
       </div>
       <div class="md-info">
         <span class="md-cat-badge">${m.cat}</span>
@@ -1341,6 +1364,13 @@ function openMockupDetail(key){
   `;
   goPage('mockup-detail', null);
   currentMockupKey = key;
+}
+
+function switchMockupImage(el, src){
+  const mainImg = document.getElementById('mdMainImage');
+  if(mainImg) mainImg.src = src;
+  document.querySelectorAll('.md-thumb-item').forEach(function(t){ t.classList.remove('active'); });
+  el.classList.add('active');
 }
 
 /* ── EMAIL CAPTURE — required once per browser before any download ── */
