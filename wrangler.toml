@@ -1,0 +1,8 @@
+name = "cafemockup-admin"
+main = "admin-worker-final.js"
+compatibility_date = "2024-11-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "cafemockup-db"
+database_id = "PASTE-YOUR-DATABASE-ID-HERE"
