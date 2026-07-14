@@ -2101,7 +2101,7 @@ function triggerHeroReveal() {
 
 /* re-apply reveal classes when switching pages */
 const _origGoPage = goPage;
-function goPage(id, btn, skipHistory) {
+goPage = function(id, btn, skipHistory) {
   _origGoPage(id, btn, skipHistory);
   setTimeout(() => {
     const pageEl = document.getElementById('pg-' + id);
@@ -2118,7 +2118,7 @@ function goPage(id, btn, skipHistory) {
       });
     }, 60);
   }, 30);
-}
+};
 
 /* add reveal classes to cards dynamically */
 function addRevealToCards() {
@@ -2149,7 +2149,7 @@ window.addEventListener('load', () => {
 
 // Also run after renderMockups
 const _origRenderMockups = renderMockups;
-function renderMockups(items, containerId) {
+renderMockups = function(items, containerId) {
   _origRenderMockups(items, containerId);
   setTimeout(() => {
     document.querySelectorAll('#' + containerId + ' .m-card').forEach(el => {
@@ -2163,7 +2163,7 @@ function renderMockups(items, containerId) {
       });
     }, 50);
   }, 20);
-}
+};
 </script>
 </body>
 </html>
