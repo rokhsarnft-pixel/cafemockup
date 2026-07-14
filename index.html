@@ -1390,6 +1390,19 @@ function renderMockups(items,containerId){
       </div>
     </div>`;
   }).join('');
+
+  /* add reveal-in animation to freshly rendered cards */
+  setTimeout(() => {
+    g.querySelectorAll('.m-card').forEach(el => {
+      el.classList.add('reveal-scale');
+    });
+    setupReveal();
+    setTimeout(() => {
+      g.querySelectorAll('.m-card').forEach(el => {
+        el.classList.add('visible');
+      });
+    }, 50);
+  }, 20);
 }
 
 function buildMockupUrl(m){
@@ -1715,6 +1728,23 @@ function goPage(id,btn,skipHistory){
     }
   }
   updateSeoForPage(id);
+
+  /* re-apply reveal classes when switching pages */
+  setTimeout(() => {
+    const pageEl = document.getElementById('pg-' + id);
+    if (!pageEl) return;
+    pageEl.querySelectorAll('.reveal, .reveal-scale').forEach(el => {
+      el.classList.remove('visible');
+    });
+    if (id === 'home') {
+      triggerHeroReveal();
+    }
+    setTimeout(() => {
+      pageEl.querySelectorAll('.reveal, .reveal-scale').forEach(el => {
+        el.classList.add('visible');
+      });
+    }, 60);
+  }, 30);
 }
 
 /* Updates <title> and meta description per page so each "view" is distinct for search engines */
@@ -2099,27 +2129,6 @@ function triggerHeroReveal() {
   }, 80);
 }
 
-/* re-apply reveal classes when switching pages */
-const _origGoPage = goPage;
-goPage = function(id, btn, skipHistory) {
-  _origGoPage(id, btn, skipHistory);
-  setTimeout(() => {
-    const pageEl = document.getElementById('pg-' + id);
-    if (!pageEl) return;
-    pageEl.querySelectorAll('.reveal, .reveal-scale').forEach(el => {
-      el.classList.remove('visible');
-    });
-    if (id === 'home') {
-      triggerHeroReveal();
-    }
-    setTimeout(() => {
-      pageEl.querySelectorAll('.reveal, .reveal-scale').forEach(el => {
-        el.classList.add('visible');
-      });
-    }, 60);
-  }, 30);
-};
-
 /* add reveal classes to cards dynamically */
 function addRevealToCards() {
   document.querySelectorAll('.m-card').forEach(el => {
@@ -2146,24 +2155,6 @@ window.addEventListener('load', () => {
     initFromUrl();
   });
 });
-
-// Also run after renderMockups
-const _origRenderMockups = renderMockups;
-renderMockups = function(items, containerId) {
-  _origRenderMockups(items, containerId);
-  setTimeout(() => {
-    document.querySelectorAll('#' + containerId + ' .m-card').forEach(el => {
-      el.classList.add('reveal-scale');
-    });
-    setupReveal();
-    // immediately visible if on screen
-    setTimeout(() => {
-      document.querySelectorAll('#' + containerId + ' .m-card').forEach(el => {
-        el.classList.add('visible');
-      });
-    }, 50);
-  }, 20);
-};
 </script>
 </body>
 </html>
