@@ -773,14 +773,7 @@ body.ltr .search-bar .search-go{order:2;margin-left:4px;margin-right:0;}
       <button class="f-btn" data-fa="پیشرفته" data-en="Advanced">Advanced</button>
     </div>
   </div>
-  <div class="tut-grid">
-    <div class="t-card" onclick="openLesson(1)"><div class="t-icon"><i class="ti ti-books"></i></div><span class="t-lv lv-b" data-fa="مقدماتی" data-en="Beginner">Beginner</span><h4 data-fa="موکاپ چیست؟" data-en="What is a Mockup?">What is a Mockup?</h4><p data-fa="آشنایی کامل با مفهوم موکاپ و کاربردهای آن در طراحی گرافیک و UI/UX" data-en="Full introduction to mockups and their use in graphic design and UI/UX">Full introduction to mockups and their use in graphic design and UI/UX</p><div class="t-meta"><span><i class="ti ti-clock"></i>۱۵ دقیقه</span><span><i class="ti ti-video"></i>ویدیو</span></div></div>
-    <div class="t-card" onclick="openLesson(2)"><div class="t-icon"><i class="ti ti-layers-difference"></i></div><span class="t-lv lv-b" data-fa="مقدماتی" data-en="Beginner">Beginner</span><h4 data-fa="Smart Object در فتوشاپ" data-en="Smart Object in Photoshop">Smart Object in Photoshop</h4><p data-fa="یاد بگیر چطور طرحت را در یک حرکت روی موکاپ قرار بدی" data-en="Learn how to place your design on a mockup in one move">Learn how to place your design on a mockup in one move</p><div class="t-meta"><span><i class="ti ti-clock"></i>۲۰ دقیقه</span><span><i class="ti ti-article"></i>مقاله</span></div></div>
-    <div class="t-card" onclick="openLesson(3)"><div class="t-icon"><i class="ti ti-sun"></i></div><span class="t-lv lv-i" data-fa="متوسط" data-en="Intermediate">Intermediate</span><h4 data-fa="نورپردازی واقع‌گرا" data-en="Realistic Lighting">Realistic Lighting</h4><p data-fa="تنظیم سایه و نور برای اینکه موکاپت کاملاً واقعی به نظر برسد" data-en="Adjust shadows and light so your mockup looks completely realistic">Adjust shadows and light so your mockup looks completely realistic</p><div class="t-meta"><span><i class="ti ti-clock"></i>۳۵ دقیقه</span><span><i class="ti ti-video"></i>ویدیو</span></div></div>
-    <div class="t-card" onclick="openLesson(4)"><div class="t-icon"><i class="ti ti-brand-figma"></i></div><span class="t-lv lv-a" data-fa="پیشرفته" data-en="Advanced">Advanced</span><h4 data-fa="موکاپ در Figma" data-en="Mockup in Figma">Mockup in Figma</h4><p data-fa="ساخت و استفاده از موکاپ مستقیم در فیگما بدون نیاز به فتوشاپ" data-en="Create and use mockups directly in Figma without Photoshop">Create and use mockups directly in Figma without Photoshop</p><div class="t-meta"><span><i class="ti ti-clock"></i>۴۰ دقیقه</span><span><i class="ti ti-video"></i>ویدیو</span></div></div>
-    <div class="t-card" onclick="openLesson(5)"><div class="t-icon"><i class="ti ti-settings-automation"></i></div><span class="t-lv lv-a" data-fa="پیشرفته" data-en="Advanced">Advanced</span><h4 data-fa="اکشن فتوشاپ" data-en="Photoshop Actions">Photoshop Actions</h4><p data-fa="اتوماسیون درج طرح روی صدها موکاپ با Photoshop Actions" data-en="Automate placing designs on hundreds of mockups with Photoshop Actions">Automate placing designs on hundreds of mockups with Photoshop Actions</p><div class="t-meta"><span><i class="ti ti-clock"></i>۶۰ دقیقه</span><span><i class="ti ti-video"></i>ویدیو</span></div></div>
-    <div class="t-card" onclick="openLesson(6)"><div class="t-icon"><i class="ti ti-palette"></i></div><span class="t-lv lv-a" data-fa="پیشرفته" data-en="Advanced">Advanced</span><h4 data-fa="موکاپ برای برندینگ" data-en="Mockup for Branding">Mockup for Branding</h4><p data-fa="ساخت پرزنتیشن برند کامل با ست موکاپ‌های هماهنگ" data-en="Build a complete brand presentation with a cohesive mockup set">Build a complete brand presentation with a cohesive mockup set</p><div class="t-meta"><span><i class="ti ti-clock"></i>۵۰ دقیقه</span><span><i class="ti ti-article"></i>مقاله</span></div></div>
-  </div>
+  <div class="tut-grid" id="tutorialsGrid"></div>
   <div class="guide-section" style="margin-top:1.5rem;">
     <h3><i class="ti ti-list-check"></i><span data-fa="راهنمای سریع: ۵ قدم تا موکاپ حرفه‌ای" data-en="Quick Guide: 5 Steps to a Pro Mockup">Quick Guide: 5 Steps to a Pro Mockup</span></h3>
     <div class="steps">
@@ -864,8 +857,8 @@ body.ltr .search-bar .search-go{order:2;margin-left:4px;margin-right:0;}
 
 /* ── MOCKUP DATA ── */
 /* ─── LESSONS DATA ─── */
-const lessons = {
-  1: {
+const FALLBACK_TUTORIALS = [
+  {id:1,
     level:{fa:'مقدماتی',en:'Beginner',cls:'lv-b'},
     icon:'ti-books',
     duration:{fa:'۱۵ دقیقه',en:'15 min'},
@@ -907,7 +900,7 @@ const lessons = {
       en:'To start, download a simple phone mockup from the MockupCafe gallery and just practice with the Smart Object — hands-on practice is the best way to learn.'
     }
   },
-  2: {
+  {id:2,
     level:{fa:'مقدماتی',en:'Beginner',cls:'lv-b'},
     icon:'ti-layers-difference',
     duration:{fa:'۲۰ دقیقه',en:'20 min'},
@@ -940,7 +933,7 @@ const lessons = {
       en:'Always keep a backup copy of the original mockup file before starting. If something goes wrong, you can easily restart from the clean version.'
     }
   },
-  3: {
+  {id:3,
     level:{fa:'متوسط',en:'Intermediate',cls:'lv-i'},
     icon:'ti-sun',
     duration:{fa:'۳۵ دقیقه',en:'35 min'},
@@ -978,7 +971,7 @@ const lessons = {
       en:'For a quick test, view the mockup at 100% zoom, not just Fit to Screen — lighting details only become visible at actual size.'
     }
   },
-  4: {
+  {id:4,
     level:{fa:'پیشرفته',en:'Advanced',cls:'lv-a'},
     icon:'ti-brand-figma',
     duration:{fa:'۴۰ دقیقه',en:'40 min'},
@@ -1016,7 +1009,7 @@ const lessons = {
       en:'Figma is great for simple digital mockups, but for realistic scenes with complex lighting and shadow (like product packaging), Photoshop still gives better results.'
     }
   },
-  5: {
+  {id:5,
     level:{fa:'پیشرفته',en:'Advanced',cls:'lv-a'},
     icon:'ti-settings-automation',
     duration:{fa:'۶۰ دقیقه',en:'60 min'},
@@ -1054,7 +1047,7 @@ const lessons = {
       en:'Always test the Action on one file first, then run it on the full batch. This prevents one small error from ruining every file.'
     }
   },
-  6: {
+  {id:6,
     level:{fa:'پیشرفته',en:'Advanced',cls:'lv-a'},
     icon:'ti-palette',
     duration:{fa:'۵۰ دقیقه',en:'50 min'},
@@ -1099,15 +1092,108 @@ const lessons = {
       en:'Before sending the final presentation to a client, view it at two sizes: mobile and desktop. Many clients open the file on their phone first.'
     }
   }
-};
+];
+
+/* ─── SLUG HELPER (shared by mockups and tutorials for SEO-friendly URLs) ─── */
+function slugify(text){
+  return String(text||'').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+}
+
+/* ─── TUTORIALS: load from database, fallback to hardcoded content if unreachable ─── */
+const ADMIN_API_URL_TUT = 'https://cafemockup-admin.rokhsar-nft.workers.dev';
+let tutorials = {};      // id -> tutorial object (same shape as FALLBACK_TUTORIALS entries)
+let tutorialsOrder = []; // ids in display order
+const tutorialRegistry = {}; // 'id-N' -> tutorial object, for slug URL lookups
+
+function mapDbTutorial(row){
+  let sections = [];
+  try { sections = JSON.parse(row.sections_json || '[]'); } catch(e) { sections = []; }
+  const levelCls = row.level === 'advanced' ? 'lv-a' : (row.level === 'intermediate' ? 'lv-i' : 'lv-b');
+  const levelLabel = row.level === 'advanced'
+    ? {fa:'پیشرفته', en:'Advanced'}
+    : row.level === 'intermediate'
+      ? {fa:'متوسط', en:'Intermediate'}
+      : {fa:'مقدماتی', en:'Beginner'};
+  const typeLabel = row.type === 'article' ? {fa:'مقاله', en:'Article'} : {fa:'ویدیو', en:'Video'};
+  return {
+    id: row.id,
+    level: {fa: levelLabel.fa, en: levelLabel.en, cls: levelCls},
+    icon: row.icon || 'ti-books',
+    duration: {fa: row.duration_fa || '', en: row.duration_en || ''},
+    type: {fa: typeLabel.fa, en: typeLabel.en},
+    title: {fa: row.title_fa || row.title_en, en: row.title_en},
+    intro: {fa: row.intro_fa || '', en: row.intro_en || ''},
+    sections: Array.isArray(sections) ? sections.map(function(s){
+      return {
+        icon: s.icon || 'ti-bulb',
+        title: {fa: s.title_fa || s.title_en || '', en: s.title_en || ''},
+        body: {fa: s.body_fa || '', en: s.body_en || ''},
+        list: (s.list_fa || s.list_en) ? {fa: s.list_fa || [], en: s.list_en || []} : null,
+      };
+    }) : [],
+    tip: {fa: row.tip_fa || '', en: row.tip_en || ''},
+    imageUrl: row.image_url || '',
+    order_index: row.order_index || 0,
+  };
+}
+
+async function loadTutorialsFromDatabase(){
+  let list = [];
+  try {
+    const res = await fetch(`${ADMIN_API_URL_TUT}/api/public/tutorials`);
+    if(!res.ok) throw new Error('Bad response');
+    const rows = await res.json();
+    if(!Array.isArray(rows) || rows.length === 0) throw new Error('Empty response');
+    list = rows.map(mapDbTutorial).sort(function(a,b){ return a.order_index - b.order_index; });
+  } catch(e){
+    console.error('Could not load live tutorials, using fallback:', e);
+    list = FALLBACK_TUTORIALS;
+  }
+  tutorials = {};
+  tutorialsOrder = [];
+  list.forEach(function(t){
+    tutorials[t.id] = t;
+    tutorialsOrder.push(t.id);
+    tutorialRegistry['id-' + t.id] = t;
+  });
+  renderTutorialsGrid();
+}
+
+function renderTutorialsGrid(){
+  const grid = document.getElementById('tutorialsGrid');
+  if(!grid) return;
+  grid.innerHTML = tutorialsOrder.map(function(id){
+    const t = tutorials[id];
+    const typeIcon = (t.type.en === 'Article') ? 'ti-article' : 'ti-video';
+    return `<div class="t-card" onclick="openLesson(${t.id})"><div class="t-icon"><i class="ti ${t.icon}"></i></div><span class="t-lv ${t.level.cls}">${lang==='fa'?t.level.fa:t.level.en}</span><h4>${lang==='fa'?t.title.fa:t.title.en}</h4><p>${lang==='fa'?t.intro.fa:t.intro.en}</p><div class="t-meta"><span><i class="ti ti-clock"></i>${lang==='fa'?t.duration.fa:t.duration.en}</span><span><i class="ti ${typeIcon}"></i>${lang==='fa'?t.type.fa:t.type.en}</span></div></div>`;
+  }).join('');
+}
+
+function buildTutorialUrl(t){
+  return '/tutorial/' + t.id + '-' + slugify(t.title.en);
+}
+
+function updateTutorialSeo(t){
+  const title = (lang==='fa' ? t.title.fa : t.title.en) + ' | MockupCafe Tutorials';
+  const desc = (lang==='fa' ? t.intro.fa : t.intro.en) || title;
+  document.title = title;
+  const metaDesc = document.querySelector('meta[name="description"]');
+  if(metaDesc) metaDesc.setAttribute('content', desc);
+  const canonical = document.querySelector('link[rel="canonical"]');
+  if(canonical) canonical.setAttribute('href', 'https://cafemockup.com' + buildTutorialUrl(t));
+}
+
 
 /* ─── LESSON RENDERING ─── */
 let currentLessonNum = null;
 let currentMockupKey = null;
-function openLesson(num){
-  const l = lessons[num];
+function openLesson(num, skipHistory){
+  const l = tutorials[num];
   if(!l) return;
   const c = document.getElementById('lessonContent');
+  const pos = tutorialsOrder.indexOf(l.id);
+  const prevId = pos > 0 ? tutorialsOrder[pos-1] : null;
+  const nextId = pos < tutorialsOrder.length-1 ? tutorialsOrder[pos+1] : null;
 
   let sectionsHtml = l.sections.map(s => {
     let bodyHtml = s.body[lang] ? `<p>${s.body[lang]}</p>` : '';
@@ -1140,17 +1226,21 @@ function openLesson(num){
       <div class="lesson-tip"><i class="ti ti-bulb"></i><p>${l.tip[lang]}</p></div>
     </div>
     <div class="lesson-nav">
-      <button class="lesson-nav-btn ${num<=1?'disabled':''}" onclick="openLesson(${num-1})">
+      <button class="lesson-nav-btn ${prevId===null?'disabled':''}" onclick="openLesson(${prevId})">
         <i class="ti ti-arrow-right"></i><span>${lang==='fa'?'درس قبلی':'Previous'}</span>
       </button>
-      <button class="lesson-nav-btn ${num>=6?'disabled':''}" onclick="openLesson(${num+1})">
+      <button class="lesson-nav-btn ${nextId===null?'disabled':''}" onclick="openLesson(${nextId})">
         <span>${lang==='fa'?'درس بعدی':'Next'}</span><i class="ti ti-arrow-left"></i>
       </button>
     </div>
   `;
 
-  goPage('lesson', null);
+  goPage('lesson', null, true);
   currentLessonNum = num;
+  updateTutorialSeo(l);
+  if(!skipHistory){
+    try { history.pushState({page:'lesson', id:l.id}, '', buildTutorialUrl(l) + (lang==='fa'?'?lang=fa':'')); } catch(e) {}
+  }
 }
 
 // Hardcoded fallback mockups — shown only if the live database can't be reached
@@ -1302,7 +1392,47 @@ function renderMockups(items,containerId){
   }).join('');
 }
 
-function openMockupDetail(key){
+function buildMockupUrl(m){
+  return '/mockup/' + m.id + '-' + slugify(m.en);
+}
+
+function updateMockupSeo(m){
+  const name = lang==='fa' ? m.fa : m.en;
+  const title = name + ' PSD Mockup | MockupCafe';
+  const desc = (lang==='fa' ? m.descriptionFa : m.descriptionEn) || title;
+  document.title = title;
+  const metaDesc = document.querySelector('meta[name="description"]');
+  if(metaDesc) metaDesc.setAttribute('content', desc);
+  const canonical = document.querySelector('link[rel="canonical"]');
+  const canonicalUrl = 'https://cafemockup.com' + buildMockupUrl(m);
+  if(canonical) canonical.setAttribute('href', canonicalUrl);
+
+  const oldSchema = document.getElementById('mdProductSchema');
+  if(oldSchema) oldSchema.remove();
+  if(m.id !== undefined && m.id !== null){
+    const schema = document.createElement('script');
+    schema.type = 'application/ld+json';
+    schema.id = 'mdProductSchema';
+    schema.textContent = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Product",
+      "name": m.en,
+      "image": m.image || 'https://cafemockup.com/og-image.png',
+      "description": desc,
+      "category": m.cat,
+      "offers": {
+        "@type": "Offer",
+        "url": canonicalUrl,
+        "priceCurrency": "USD",
+        "price": m.free ? "0" : m.price.replace('$',''),
+        "availability": "https://schema.org/InStock"
+      }
+    });
+    document.head.appendChild(schema);
+  }
+}
+
+function openMockupDetail(key, skipHistory){
   const m = mockupRegistry[key];
   if(!m) return;
   const c = document.getElementById('mockupDetailContent');
@@ -1362,8 +1492,12 @@ function openMockupDetail(key){
       </div>
     </div>
   `;
-  goPage('mockup-detail', null);
+  goPage('mockup-detail', null, true);
   currentMockupKey = key;
+  updateMockupSeo(m);
+  if(!skipHistory){
+    try { history.pushState({page:'mockup-detail', key:key}, '', buildMockupUrl(m) + (lang==='fa'?'?lang=fa':'')); } catch(e) {}
+  }
 }
 
 function switchMockupImage(el, src){
@@ -1606,13 +1740,12 @@ function updateSeoForPage(id){
   if(metaDesc) metaDesc.setAttribute('content', desc);
 }
 
-/* ── Handle browser back/forward buttons ── */
-window.addEventListener('popstate', (e)=>{
-  const path = window.location.pathname.replace('/','') || 'home';
-  const validPages = ['home','pricing','tutorials','about','payment','lesson'];
-  const id = validPages.includes(path) ? path : 'home';
+/* ── Shared route resolution: parses the current URL and opens the right page/detail ── */
+function resolveRouteFromUrl(skipHistory){
+  const path = window.location.pathname;
   const params = new URLSearchParams(window.location.search);
   const urlLang = params.get('lang');
+
   if(urlLang === 'fa' && lang !== 'fa'){
     const faBtn = document.querySelectorAll('.lang-btn')[0];
     if(faBtn) setLang('fa', faBtn);
@@ -1620,30 +1753,41 @@ window.addEventListener('popstate', (e)=>{
     const enBtn = document.querySelectorAll('.lang-btn')[1];
     if(enBtn) setLang('en', enBtn);
   }
-  goPage(id, null, true);
+
+  const mockupMatch = path.match(/^\/mockup\/(\d+)/);
+  if(mockupMatch){
+    const key = 'id-' + mockupMatch[1];
+    if(mockupRegistry[key]){
+      openMockupDetail(key, true);
+      return;
+    }
+  }
+
+  const tutorialMatch = path.match(/^\/tutorial\/(\d+)/);
+  if(tutorialMatch){
+    const tid = parseInt(tutorialMatch[1], 10);
+    if(tutorials[tid]){
+      openLesson(tid, true);
+      return;
+    }
+  }
+
+  const cleanPath = path.replace(/^\//,'') || 'home';
+  const validPages = ['home','pricing','tutorials','about','payment','lesson'];
+  const pageId = validPages.includes(cleanPath) ? cleanPath : 'home';
+  const tabIndexMap = {pricing:1,tutorials:2,about:3};
+  const btn = tabIndexMap[pageId] !== undefined ? document.querySelectorAll('.nav-tab')[tabIndexMap[pageId]] : null;
+  goPage(pageId, btn, true);
+}
+
+/* ── Handle browser back/forward buttons ── */
+window.addEventListener('popstate', (e)=>{
+  resolveRouteFromUrl(true);
 });
 
-/* ── On first load, read the URL and open the right page (deep linking) ── */
+/* ── On first load, read the URL and open the right page (deep linking) — called after mockups/tutorials are loaded ── */
 function initFromUrl(){
-  const path = window.location.pathname.replace('/','') || 'home';
-  const params = new URLSearchParams(window.location.search);
-  const urlLang = params.get('lang');
-  const validPages = ['home','pricing','tutorials','about','payment','lesson'];
-
-  if(urlLang === 'fa'){
-    const faBtn = document.querySelectorAll('.lang-btn')[0];
-    if(faBtn) setLang('fa', faBtn);
-  } else if(urlLang === 'en'){
-    const enBtn = document.querySelectorAll('.lang-btn')[1];
-    if(enBtn) setLang('en', enBtn);
-  }
-  if(validPages.includes(path) && path !== 'home'){
-    const tabIndexMap = {pricing:1,tutorials:2,about:3};
-    const btn = tabIndexMap[path] !== undefined ? document.querySelectorAll('.nav-tab')[tabIndexMap[path]] : null;
-    goPage(path, btn, true);
-  } else {
-    updateSeoForPage('home');
-  }
+  resolveRouteFromUrl(true);
 }
 
 /* ─── FULL-SCREEN MENU OVERLAY ─── */
@@ -1910,21 +2054,21 @@ function setLang(l,btn){
   });
   renderMockups(mockups,'mainGrid');
   renderPlans();
+  renderTutorialsGrid();
   if(document.getElementById('searchResults').classList.contains('show')){
     const v=document.getElementById('searchInput').value;
     if(v)doSearch(v);
   }
   if(currentLessonNum){
-    openLesson(currentLessonNum);
+    openLesson(currentLessonNum, true);
   }
   if(currentMockupKey && document.getElementById('pg-mockup-detail') && document.getElementById('pg-mockup-detail').classList.contains('active')){
-    openMockupDetail(currentMockupKey);
+    openMockupDetail(currentMockupKey, true);
   }
 }
 
 /* ─── INIT ─── */
-loadMockupsFromDatabase();
-loadPlansFromDatabase();
+const dataLoadPromise = Promise.all([loadMockupsFromDatabase(), loadPlansFromDatabase(), loadTutorialsFromDatabase()]);
 updateNavLoginButton();
 
 const emailModalInputEl = document.getElementById('emailModalInput');
@@ -1933,7 +2077,6 @@ if(emailModalInputEl){
     if(e.key === 'Enter') submitEmailModal();
   });
 }
-</script>
 /* ── REVEAL ON SCROLL (Intersection Observer) ── */
 function setupReveal() {
   const revealEls = document.querySelectorAll('.reveal, .reveal-scale');
@@ -1958,8 +2101,8 @@ function triggerHeroReveal() {
 
 /* re-apply reveal classes when switching pages */
 const _origGoPage = goPage;
-function goPage(id, btn) {
-  _origGoPage(id, btn);
+function goPage(id, btn, skipHistory) {
+  _origGoPage(id, btn, skipHistory);
   setTimeout(() => {
     const pageEl = document.getElementById('pg-' + id);
     if (!pageEl) return;
@@ -1999,7 +2142,9 @@ window.addEventListener('load', () => {
   triggerHeroReveal();
   addRevealToCards();
   setupReveal();
-  initFromUrl();
+  dataLoadPromise.then(function(){
+    initFromUrl();
+  });
 });
 
 // Also run after renderMockups
@@ -2019,3 +2164,6 @@ function renderMockups(items, containerId) {
     }, 50);
   }, 20);
 }
+</script>
+</body>
+</html>
