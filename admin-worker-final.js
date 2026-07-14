@@ -119,10 +119,28 @@ export default {
     // ── PUBLIC ROUTES ──
     var PUBLIC_ROUTES = ["/api/login", "/api/public/mockups", "/api/public/categories", "/api/public/tutorials", "/api/public/plans", "/api/webhook"];
     var isApiRoute = url.pathname.startsWith("/api/");
-    var isPublicRoute = PUBLIC_ROUTES.indexOf(url.pathname) !== -1;
+    var publicMockupItemMatch = url.pathname.match(/^\/api\/public\/mockup\/(\d+)$/);
+    var publicTutorialItemMatch = url.pathname.match(/^\/api\/public\/tutorial\/(\d+)$/);
+    var isPublicRoute = PUBLIC_ROUTES.indexOf(url.pathname) !== -1 || !!publicMockupItemMatch || !!publicTutorialItemMatch;
 
     if (isApiRoute && !isPublicRoute && !checkAuth(request, env)) {
       return json({ error: "Unauthorized" }, 401);
+    }
+
+    if (publicMockupItemMatch && request.method === "GET") {
+      var rSingleMockup = await env.DB.prepare(
+        "SELECT id, name_fa, name_en, category, is_free, price, image_url, download_url, icon, description_fa, description_en, gallery_images_json FROM mockups WHERE is_active = 1 AND id = ?"
+      ).bind(publicMockupItemMatch[1]).first();
+      if (!rSingleMockup) return json({ error: "Not found" }, 404);
+      return json(rSingleMockup);
+    }
+
+    if (publicTutorialItemMatch && request.method === "GET") {
+      var rSingleTutorial = await env.DB.prepare(
+        "SELECT id, title_fa, title_en, intro_fa, intro_en, level, duration_fa, duration_en, type, icon, image_url, video_url, sections_json, tip_fa, tip_en, order_index FROM tutorials WHERE is_active = 1 AND id = ?"
+      ).bind(publicTutorialItemMatch[1]).first();
+      if (!rSingleTutorial) return json({ error: "Not found" }, 404);
+      return json(rSingleTutorial);
     }
 
     if (url.pathname === "/api/public/mockups" && request.method === "GET") {
