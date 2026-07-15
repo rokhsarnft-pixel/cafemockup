@@ -185,6 +185,70 @@ export default {
       return json({ ok: true, id: r6.meta.last_row_id });
     }
 
+    if (url.pathname === "/api/mockups/bulk-import" && request.method === "POST") {
+      var bulkBody = await request.json();
+      var rows = bulkBody.rows || [];
+      if (!Array.isArray(rows) || rows.length === 0) {
+        return json({ error: "No rows provided" }, 400);
+      }
+      if (rows.length > 500) {
+        return json({ error: "Too many rows in one import (max 500)." }, 400);
+      }
+
+      var rowErrors = [];
+      for (var ri = 0; ri < rows.length; ri++) {
+        var rr = rows[ri];
+        var rowNum = ri + 2; // +2 because row 1 is the CSV header, and rows are 0-indexed here
+        if (!rr.name_en || !String(rr.name_en).trim()) {
+          rowErrors.push("Row " + rowNum + ": name_en is required");
+          continue;
+        }
+        var rrIsFree = rr.is_free === true || rr.is_free === "true" || rr.is_free === "1" || rr.is_free === 1;
+        var rrPrice = parseFloat(rr.price) || 0;
+        if (!rrIsFree && rrPrice < 20) {
+          rowErrors.push("Row " + rowNum + " (" + rr.name_en + "): paid mockups must be $20 or more");
+        }
+      }
+
+      if (rowErrors.length > 0) {
+        return json({ error: "Validation failed", details: rowErrors }, 400);
+      }
+
+      var stmts = [];
+      for (var rj = 0; rj < rows.length; rj++) {
+        var row = rows[rj];
+        var rowIsFree = row.is_free === true || row.is_free === "true" || row.is_free === "1" || row.is_free === 1;
+        var rowPrice = rowIsFree ? 0 : (parseFloat(row.price) || 0);
+        var rowGallery = "[]";
+        if (row.gallery_images) {
+          var galleryUrls = String(row.gallery_images).split("|").map(function (u) { return u.trim(); }).filter(function (u) { return !!u; });
+          rowGallery = JSON.stringify(galleryUrls);
+        } else if (row.gallery_images_json) {
+          rowGallery = row.gallery_images_json;
+        }
+        stmts.push(
+          env.DB.prepare(
+            "INSERT INTO mockups (name_fa, name_en, category, is_free, price, image_url, download_url, icon, description_fa, description_en, gallery_images_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+          ).bind(
+            row.name_fa || "",
+            row.name_en,
+            row.category || "",
+            rowIsFree ? 1 : 0,
+            rowPrice,
+            row.image_url || "",
+            row.download_url || "",
+            row.icon || "ti-box",
+            row.description_fa || "",
+            row.description_en || "",
+            rowGallery
+          )
+        );
+      }
+
+      var batchResults = await env.DB.batch(stmts);
+      return json({ ok: true, imported: batchResults.length });
+    }
+
     var mockupIdMatch = url.pathname.match(/^\/api\/mockups\/(\d+)$/);
     if (mockupIdMatch && request.method === "PUT") {
       var mid = mockupIdMatch[1];
@@ -422,7 +486,7 @@ function getDashboardHtml() {
 '<button class="tab" onclick="showTab(\'settings\',this)">Settings</button>' +
 '</div>' +
 '<div class="panel active" id="panel-mockups">' +
-'<div class="toolbar"><span id="mockupCount" style="font-size:.85rem;color:rgba(255,255,255,.4)"></span><button class="btn btn-primary" onclick="openMockupForm()">+ Add Mockup</button></div>' +
+'<div class="toolbar"><span id="mockupCount" style="font-size:.85rem;color:rgba(255,255,255,.4)"></span><div><button class="btn" style="margin-left:8px;" onclick="openBulkImportForm()">Bulk Import CSV</button><button class="btn btn-primary" onclick="openMockupForm()">+ Add Mockup</button></div></div>' +
 '<table><thead><tr><th>Preview</th><th>Name</th><th>Category</th><th>Price</th><th>Active</th><th>Actions</th></tr></thead><tbody id="mockupsTableBody"></tbody></table>' +
 '</div>' +
 '<div class="panel" id="panel-categories">' +
@@ -468,6 +532,17 @@ function getDashboardHtml() {
 '<div class="form-row"><label>Download File URL (ZIP/RAR from GitHub)</label><input id="mFieldDownload" placeholder="https://github.com/.../file.zip"></div>' +
 '<div class="form-row form-row-inline"><input type="checkbox" id="mFieldActive" checked><label>Visible on site</label></div>' +
 '<div class="modal-actions"><button class="btn" onclick="closeMockupForm()">Cancel</button><button class="btn btn-primary" onclick="saveMockup()">Save Mockup</button></div>' +
+'</div></div>' +
+'<div class="modal-overlay" id="bulkImportModalOverlay">' +
+'<div class="modal">' +
+'<h3>Bulk Import Mockups (CSV)</h3>' +
+'<div class="sec-title">CSV Format</div>' +
+'<div class="form-row"><label style="font-weight:400;color:rgba(255,255,255,.6);">First row must be a header with these exact column names (order doesn\'t matter, extra columns are ignored):<br><code style="font-size:.72rem;">name_en,name_fa,category,is_free,price,image_url,download_url,description_en,description_fa,gallery_images</code><br><br>- <code>is_free</code>: true/false or 1/0<br>- <code>price</code>: number, ignored if is_free is true, must be 20 or more if paid<br>- <code>gallery_images</code>: optional, multiple URLs separated by a pipe character | (e.g. url1|url2)</label></div>' +
+'<div class="sec-title">Paste CSV Content</div>' +
+'<div class="form-row"><textarea id="bulkCsvInput" style="min-height:220px;font-family:monospace;font-size:.78rem;" placeholder="name_en,name_fa,category,is_free,price,image_url,download_url,description_en,description_fa,gallery_images"></textarea></div>' +
+'<div id="bulkImportPreview" style="font-size:.82rem;color:rgba(255,255,255,.6);margin-bottom:.5rem;"></div>' +
+'<div id="bulkImportErrors" style="font-size:.78rem;color:#E24B4A;margin-bottom:.5rem;white-space:pre-wrap;"></div>' +
+'<div class="modal-actions"><button class="btn" onclick="closeBulkImportForm()">Cancel</button><button class="btn btn-primary" onclick="submitBulkImport()">Import</button></div>' +
 '</div></div>' +
 '<div class="modal-overlay" id="tutorialModalOverlay">' +
 '<div class="modal">' +
@@ -620,6 +695,65 @@ function getDashboardHtml() {
 'fetch(url,{method:method,headers:{"Content-Type":"application/json"},credentials:"include",body:JSON.stringify(payload)})' +
 '.then(function(){closeMockupForm();loadMockups();});}' +
 'function deleteMockup(id){if(!confirm("Delete this mockup?"))return;fetch("/api/mockups/"+id,{method:"DELETE",credentials:"include"}).then(loadMockups);}' +
+'function parseCsv(text){' +
+'var lines=text.replace(/\\r\\n/g,"\\n").split("\\n").filter(function(l){return l.trim().length>0;});' +
+'if(lines.length<2)return{header:[],rows:[]};' +
+'function splitLine(line){' +
+'var result=[];var cur="";var inQuotes=false;' +
+'for(var i=0;i<line.length;i++){' +
+'var ch=line[i];' +
+'if(ch===\'"\'){' +
+'if(inQuotes&&line[i+1]===\'"\'){cur+=\'"\';i++;}' +
+'else{inQuotes=!inQuotes;}' +
+'}else if(ch===\',\'&&!inQuotes){' +
+'result.push(cur);cur="";' +
+'}else{' +
+'cur+=ch;' +
+'}' +
+'}' +
+'result.push(cur);' +
+'return result.map(function(s){return s.trim();});' +
+'}' +
+'var header=splitLine(lines[0]);' +
+'var rows=[];' +
+'for(var i=1;i<lines.length;i++){' +
+'var cols=splitLine(lines[i]);' +
+'var obj={};' +
+'for(var j=0;j<header.length;j++){obj[header[j]]=cols[j]!==undefined?cols[j]:"";}' +
+'rows.push(obj);' +
+'}' +
+'return{header:header,rows:rows};' +
+'}' +
+'function openBulkImportForm(){' +
+'document.getElementById("bulkCsvInput").value="";' +
+'document.getElementById("bulkImportPreview").textContent="";' +
+'document.getElementById("bulkImportErrors").textContent="";' +
+'document.getElementById("bulkImportModalOverlay").classList.add("open");}' +
+'function closeBulkImportForm(){document.getElementById("bulkImportModalOverlay").classList.remove("open");}' +
+'function submitBulkImport(){' +
+'var text=document.getElementById("bulkCsvInput").value.trim();' +
+'var errBox=document.getElementById("bulkImportErrors");' +
+'var previewBox=document.getElementById("bulkImportPreview");' +
+'errBox.textContent="";' +
+'if(!text){errBox.textContent="Paste CSV content first.";return;}' +
+'var parsed=parseCsv(text);' +
+'if(!parsed.rows.length){errBox.textContent="No data rows found (need a header row plus at least one data row).";return;}' +
+'if(parsed.header.indexOf("name_en")===-1){errBox.textContent="CSV header must include a name_en column.";return;}' +
+'previewBox.textContent=parsed.rows.length+" rows detected. Importing...";' +
+'fetch("/api/mockups/bulk-import",{method:"POST",headers:{"Content-Type":"application/json"},credentials:"include",body:JSON.stringify({rows:parsed.rows})})' +
+'.then(function(r){return r.json().then(function(d){return{status:r.status,body:d};});})' +
+'.then(function(res){' +
+'if(res.status!==200){' +
+'previewBox.textContent="";' +
+'errBox.textContent=(res.body.error||"Import failed")+(res.body.details?"\\n\\n"+res.body.details.join("\\n"):"");' +
+'return;' +
+'}' +
+'previewBox.textContent="Imported "+res.body.imported+" mockups successfully.";' +
+'loadMockups();' +
+'setTimeout(closeBulkImportForm,1200);' +
+'})' +
+'.catch(function(e){errBox.textContent="Network error: "+e.message;});' +
+'}' +
 'function loadTutorials(){' +
 'fetch("/api/tutorials",{credentials:"include"}).then(function(r){return r.json();}).then(function(data){' +
 'var tbody=document.getElementById("tutorialsTableBody");' +
