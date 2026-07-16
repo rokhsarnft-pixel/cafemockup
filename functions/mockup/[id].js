@@ -77,10 +77,16 @@ export async function onRequest(context) {
   html = replaceOnce(html, /<title>[\s\S]*?<\/title>/, "<title>" + escapeHtml(pageTitle) + "</title>");
   html = replaceOnce(html, /<meta name="description" content="[^"]*">/, '<meta name="description" content="' + escapeHtml(desc) + '">');
   html = replaceOnce(html, /<link rel="canonical" href="[^"]*">/, '<link rel="canonical" href="' + canonicalUrl + '">');
+  html = replaceOnce(html, /<meta property="og:type" content="[^"]*">/, '<meta property="og:type" content="product">');
   html = replaceOnce(html, /<meta property="og:url" content="[^"]*">/, '<meta property="og:url" content="' + canonicalUrl + '">');
   html = replaceOnce(html, /<meta property="og:title" content="[^"]*">/, '<meta property="og:title" content="' + escapeHtml(pageTitle) + '">');
   html = replaceOnce(html, /<meta property="og:description" content="[^"]*">/, '<meta property="og:description" content="' + escapeHtml(desc) + '">');
-  html = replaceOnce(html, /<meta property="og:image" content="[^"]*">/, '<meta property="og:image" content="' + imageUrl + '">');
+  var priceMetaTags = '<meta property="product:price:amount" content="' + priceValue + '">' +
+    '<meta property="product:price:currency" content="USD">' +
+    '<meta property="product:availability" content="in stock">' +
+    '<meta property="product:condition" content="new">' +
+    '<meta property="product:retailer_item_id" content="' + mockupId + '">';
+  html = replaceOnce(html, /<meta property="og:image" content="[^"]*">/, '<meta property="og:image" content="' + imageUrl + '">' + priceMetaTags);
   html = replaceOnce(html, /<meta name="twitter:title" content="[^"]*">/, '<meta name="twitter:title" content="' + escapeHtml(pageTitle) + '">');
   html = replaceOnce(html, /<meta name="twitter:description" content="[^"]*">/, '<meta name="twitter:description" content="' + escapeHtml(desc) + '">');
   html = replaceOnce(html, /<meta name="twitter:image" content="[^"]*">/, '<meta name="twitter:image" content="' + imageUrl + '">');
