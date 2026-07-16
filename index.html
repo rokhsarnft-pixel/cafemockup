@@ -467,6 +467,39 @@ body.ltr .lesson-section ul{padding-right:0;padding-left:1.2rem;}
 .step-body h5{font-size:.85rem;font-weight:600;color:var(--w85);margin-bottom:.25rem;}
 .step-body p{font-size:.78rem;color:var(--w65);line-height:1.6;}
 
+/* ══ UPSCALER ══ */
+.upscaler-wrap{max-width:640px;margin:2.5rem auto;padding:0 1.5rem 4rem;}
+.upscaler-head{text-align:center;margin-bottom:1.5rem;}
+.upscaler-head h2{font-size:1.4rem;font-weight:700;color:var(--w);margin-bottom:.4rem;}
+.upscaler-head p{font-size:.85rem;color:var(--w65);}
+.upscaler-dropzone{
+  border:2px dashed var(--w20);border-radius:16px;padding:3rem 1.5rem;text-align:center;
+  cursor:pointer;background:#fff;transition:all .2s;
+}
+.upscaler-dropzone:hover{border-color:var(--blue2);background:var(--blue5);}
+.upscaler-dropzone i{font-size:2.5rem;color:var(--blue2);margin-bottom:.75rem;display:block;}
+.upscaler-dropzone p{font-size:.85rem;color:var(--w65);}
+.upscaler-controls{background:#fff;border:1px solid var(--w12);border-radius:16px;padding:1.5rem;margin-top:1.25rem;}
+.upscaler-preview-row{display:flex;justify-content:center;margin-bottom:1.25rem;}
+.upscaler-preview-row img{max-width:100%;max-height:280px;border-radius:10px;object-fit:contain;}
+.upscaler-size-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:.75rem 0 1.25rem;}
+.upscaler-size-opt{
+  border:1.5px solid var(--w20);border-radius:10px;padding:12px 6px;text-align:center;
+  cursor:pointer;transition:all .2s;background:var(--w08);font-weight:700;color:var(--w65);
+}
+.upscaler-size-opt:hover,.upscaler-size-opt.sel{border-color:var(--blue2);background:var(--blue5);color:var(--blue1);}
+.upscaler-result{background:#fff;border:1px solid var(--w12);border-radius:16px;padding:1.5rem;margin-top:1.25rem;}
+.upscaler-compare{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.upscaler-compare-col{display:flex;flex-direction:column;gap:.5rem;}
+.upscaler-compare-lbl{font-size:.72rem;font-weight:700;color:var(--w40);text-transform:uppercase;letter-spacing:.05em;}
+.upscaler-compare-col img{width:100%;border-radius:10px;cursor:zoom-in;border:1px solid var(--w12);}
+.upscaler-lightbox{
+  position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.9);
+  display:none;align-items:center;justify-content:center;padding:2rem;
+}
+.upscaler-lightbox.open{display:flex;}
+.upscaler-lightbox img{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px;}
+
 /* ══ ABOUT ══ */
 .about-grid{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--w08);}
 .about-l{padding:3rem 2.5rem;background:#fff;border-left:1px solid var(--w08);}
@@ -579,6 +612,7 @@ body.ltr .search-bar .search-go{order:2;margin-left:4px;margin-right:0;}
   <button class="menu-overlay-link nav-tab" onclick="goPage('pricing',this);closeMobileMenu()" data-fa="پلن‌ها" data-en="Pricing">Pricing</button>
   <button class="menu-overlay-link nav-tab" onclick="goPage('tutorials',this);closeMobileMenu()" data-fa="آموزش" data-en="Tutorials">Tutorials</button>
   <button class="menu-overlay-link nav-tab" onclick="goPage('about',this);closeMobileMenu()" data-fa="درباره ما" data-en="About">About</button>
+  <button class="menu-overlay-link nav-tab" onclick="goPage('upscaler',this);closeMobileMenu()" data-fa="آپسکیلر" data-en="Upscaler">Upscaler</button>
   <button class="menu-overlay-link" onclick="toggleLangAccordion()">
     <span data-fa="زبان" data-en="Language">Language</span>
   </button>
@@ -823,10 +857,65 @@ body.ltr .search-bar .search-go{order:2;margin-left:4px;margin-right:0;}
       <div class="c-card"><i class="ti ti-brand-x"></i><div><strong>Twitter / X</strong><span>@CafeMockup</span></div></div>
       <div class="c-card"><i class="ti ti-world"></i><div><strong data-fa="مکان" data-en="Location">Location</strong><span data-fa="اینترنت — همه‌جا" data-en="Internet — Everywhere">Internet — Everywhere</span></div></div>
     </div>
+</div>
+</div>
+
+<!-- UPSCALER -->
+<div id="pg-upscaler" class="page">
+  <div class="upscaler-wrap">
+    <div class="upscaler-head">
+      <h2 data-fa="آپسکیلر تصویر" data-en="Image Upscaler">Image Upscaler</h2>
+      <p data-fa="کیفیت عکس خودت رو با هوش مصنوعی تا ۸ برابر افزایش بده" data-en="Boost your image quality up to 8x with AI">Boost your image quality up to 8x with AI</p>
+    </div>
+
+    <div class="upscaler-dropzone" id="upscalerDropzone" onclick="document.getElementById('upscalerFileInput').click()">
+      <input type="file" id="upscalerFileInput" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="handleUpscalerFileSelect(this.files[0])">
+      <i class="ti ti-cloud-upload"></i>
+      <p data-fa="برای انتخاب عکس کلیک کن (JPG، PNG یا WebP، حداکثر ۲۰ مگابایت)" data-en="Click to select an image (JPG, PNG or WebP, max 20MB)">Click to select an image (JPG, PNG or WebP, max 20MB)</p>
+    </div>
+
+    <div class="upscaler-controls" id="upscalerControls" style="display:none;">
+      <div class="upscaler-preview-row"><img id="upscalerOriginalPreview" alt="original"></div>
+      <div class="pay-lbl" data-fa="مقدار بزرگ‌نمایی" data-en="Upscale Amount">Upscale Amount</div>
+      <div class="upscaler-size-grid">
+        <div class="upscaler-size-opt sel" onclick="pickUpscaleSize(this,2)">2x</div>
+        <div class="upscaler-size-opt" onclick="pickUpscaleSize(this,4)">4x</div>
+        <div class="upscaler-size-opt" onclick="pickUpscaleSize(this,8)">8x</div>
+      </div>
+      <button class="pay-btn" id="upscalerRunBtn" onclick="runUpscale()">
+        <i class="ti ti-sparkles"></i>
+        <span data-fa="آپسکیل کن" data-en="Upscale Now">Upscale Now</span>
+      </button>
+      <div id="upscalerError" class="pay-error" style="display:none;"></div>
+    </div>
+
+    <div class="upscaler-result" id="upscalerResult" style="display:none;">
+      <div class="upscaler-compare">
+        <div class="upscaler-compare-col">
+          <span class="upscaler-compare-lbl" data-fa="قبل" data-en="Before">Before</span>
+          <img id="upscalerBeforeImg" alt="before" onclick="openUpscalerLightbox('before')">
+        </div>
+        <div class="upscaler-compare-col">
+          <span class="upscaler-compare-lbl" data-fa="بعد" data-en="After">After</span>
+          <img id="upscalerAfterImg" alt="after" onclick="openUpscalerLightbox('after')">
+        </div>
+      </div>
+      <button class="btn-gold" id="upscalerDownloadBtn" style="width:100%;margin-top:1rem;">
+        <i class="ti ti-download"></i>
+        <span data-fa="دانلود عکس نهایی" data-en="Download Result">Download Result</span>
+      </button>
+      <button class="pay-back-btn" onclick="resetUpscaler()">
+        <i class="ti ti-refresh"></i>
+        <span data-fa="عکس دیگری آپسکیل کن" data-en="Upscale Another Image">Upscale Another Image</span>
+      </button>
+    </div>
   </div>
 </div>
 
-<!-- EMAIL CAPTURE MODAL — required before any download (free or paid) -->
+<div class="upscaler-lightbox" id="upscalerLightbox" onclick="closeUpscalerLightbox()">
+  <button class="menu-overlay-close" onclick="closeUpscalerLightbox()" style="position:fixed;top:18px;right:24px;"><i class="ti ti-x"></i></button>
+  <img id="upscalerLightboxImg" alt="zoom">
+</div>
 <div id="emailModalOverlay" class="email-modal-overlay" style="display:none;" onclick="if(event.target===this) closeEmailModal()">
   <div class="email-modal">
     <button class="email-modal-close" onclick="closeEmailModal()"><i class="ti ti-x"></i></button>
@@ -1761,7 +1850,9 @@ function updateSeoForPage(id){
     payment: {fa:['پرداخت کریپتو | کافه موکاپ','پرداخت امن با Bitcoin، Ethereum و USDT.'],
               en:['Crypto Checkout | MockupCafe','Secure checkout with Bitcoin, Ethereum and USDT.']},
     lesson:  {fa:['آموزش موکاپ | کافه موکاپ','درس آموزشی کار با موکاپ.'],
-              en:['Mockup Lesson | MockupCafe','Mockup tutorial lesson.']}
+              en:['Mockup Lesson | MockupCafe','Mockup tutorial lesson.']},
+    upscaler:{fa:['آپسکیلر تصویر | کافه موکاپ','کیفیت عکس خودت را با هوش مصنوعی تا ۸ برابر افزایش بده.'],
+              en:['Image Upscaler | MockupCafe','Boost your image quality up to 8x with AI.']}
   };
   const entry = seoMap[id] || seoMap.home;
   const [title, desc] = entry[lang] || entry.en;
@@ -1803,9 +1894,9 @@ function resolveRouteFromUrl(skipHistory){
   }
 
   const cleanPath = path.replace(/^\//,'') || 'home';
-  const validPages = ['home','pricing','tutorials','about','payment','lesson'];
+  const validPages = ['home','pricing','tutorials','about','payment','lesson','upscaler'];
   const pageId = validPages.includes(cleanPath) ? cleanPath : 'home';
-  const tabIndexMap = {pricing:1,tutorials:2,about:3};
+  const tabIndexMap = {pricing:1,tutorials:2,about:3,upscaler:4};
   const btn = tabIndexMap[pageId] !== undefined ? document.querySelectorAll('.nav-tab')[tabIndexMap[pageId]] : null;
   goPage(pageId, btn, true);
 }
@@ -2058,6 +2149,128 @@ function setPaymentOrder(amount, description) {
   currentOrderDescription = description;
   document.getElementById('payOrderAmount').textContent = `$${amount.toFixed(2)}`;
   document.getElementById('payTotalAmount').textContent = `$${amount.toFixed(2)}`;
+}
+
+/* ─── UPSCALER ─── */
+let upscalerSelectedFile = null;
+let upscalerMultiplier = 2;
+let upscalerOriginalUrl = null;
+let upscalerResultUrl = null;
+
+function handleUpscalerFileSelect(file){
+  if(!file) return;
+  const allowed = ['image/jpeg','image/png','image/webp'];
+  if(allowed.indexOf(file.type) === -1){
+    alert(lang==='fa' ? 'فرمت فایل باید JPG، PNG یا WebP باشد.' : 'File must be JPG, PNG or WebP.');
+    return;
+  }
+  if(file.size > 20*1024*1024){
+    alert(lang==='fa' ? 'حجم فایل نباید بیشتر از ۲۰ مگابایت باشد.' : 'File must be under 20MB.');
+    return;
+  }
+  upscalerSelectedFile = file;
+  if(upscalerOriginalUrl) URL.revokeObjectURL(upscalerOriginalUrl);
+  upscalerOriginalUrl = URL.createObjectURL(file);
+  document.getElementById('upscalerOriginalPreview').src = upscalerOriginalUrl;
+  document.getElementById('upscalerControls').style.display = 'block';
+  document.getElementById('upscalerResult').style.display = 'none';
+  document.getElementById('upscalerError').style.display = 'none';
+}
+
+function pickUpscaleSize(el, size){
+  document.querySelectorAll('.upscaler-size-opt').forEach(function(o){ o.classList.remove('sel'); });
+  el.classList.add('sel');
+  upscalerMultiplier = size;
+}
+
+function runUpscale(){
+  if(!upscalerSelectedFile) return;
+  requireEmail(function(email){
+    const btn = document.getElementById('upscalerRunBtn');
+    const errorBox = document.getElementById('upscalerError');
+    errorBox.style.display = 'none';
+    btn.disabled = true;
+    const originalLabel = btn.innerHTML;
+    btn.innerHTML = '<span>' + (lang==='fa' ? 'در حال پردازش...' : 'Processing...') + '</span>';
+
+    const formData = new FormData();
+    formData.append('email', email);
+    formData.append('multiplier', upscalerMultiplier);
+    formData.append('image', upscalerSelectedFile);
+
+    fetch(ADMIN_API_URL + '/api/upscale', { method: 'POST', body: formData })
+      .then(function(res){
+        if(res.status === 402){
+          return res.json().then(function(body){
+            var err = new Error(body.error || 'PAYMENT_REQUIRED');
+            err.code = body.error || 'PAYMENT_REQUIRED';
+            err.limit = body.limit;
+            err.used = body.used;
+            throw err;
+          });
+        }
+        if(!res.ok){
+          throw new Error('FAILED');
+        }
+        return res.blob();
+      })
+      .then(function(blob){
+        if(upscalerResultUrl) URL.revokeObjectURL(upscalerResultUrl);
+        upscalerResultUrl = URL.createObjectURL(blob);
+        document.getElementById('upscalerBeforeImg').src = upscalerOriginalUrl;
+        document.getElementById('upscalerAfterImg').src = upscalerResultUrl;
+        document.getElementById('upscalerDownloadBtn').onclick = function(){
+          const a = document.createElement('a');
+          a.href = upscalerResultUrl;
+          a.download = 'upscaled-' + upscalerMultiplier + 'x.webp';
+          a.click();
+        };
+        document.getElementById('upscalerResult').style.display = 'block';
+        btn.disabled = false;
+        btn.innerHTML = originalLabel;
+      })
+      .catch(function(err){
+        btn.disabled = false;
+        btn.innerHTML = originalLabel;
+        if(err && err.code === 'PAYMENT_REQUIRED'){
+          goToUpscalePayment();
+        } else if(err && err.code === 'MONTHLY_LIMIT_REACHED'){
+          alert(lang==='fa'
+            ? 'سقف ماهانه‌ی آپسکیل شما (' + err.limit + ' بار) تمام شده. سقف از ابتدای ماه بعد دوباره فعال می‌شود.'
+            : 'You have reached your monthly upscale limit (' + err.limit + '). Your credits will reset at the start of next month.');
+        } else {
+          errorBox.textContent = lang==='fa' ? 'خطا در پردازش عکس. لطفاً دوباره تلاش کنید.' : 'Error processing the image. Please try again.';
+          errorBox.style.display = 'block';
+        }
+      });
+  });
+}
+
+function goToUpscalePayment(){
+  alert(lang==='fa'
+    ? 'استفاده رایگان شما تمام شده. برای دسترسی نامحدود، یکی از پلن‌های اشتراک را فعال کنید.'
+    : 'Your free use is used up. Subscribe to a plan for unlimited access.');
+  goPage('pricing', document.querySelectorAll('.nav-tab')[1]);
+}
+
+function resetUpscaler(){
+  upscalerSelectedFile = null;
+  if(upscalerOriginalUrl){ URL.revokeObjectURL(upscalerOriginalUrl); upscalerOriginalUrl = null; }
+  if(upscalerResultUrl){ URL.revokeObjectURL(upscalerResultUrl); upscalerResultUrl = null; }
+  const fileInput = document.getElementById('upscalerFileInput');
+  if(fileInput) fileInput.value = '';
+  document.getElementById('upscalerControls').style.display = 'none';
+  document.getElementById('upscalerResult').style.display = 'none';
+}
+
+function openUpscalerLightbox(which){
+  const src = which === 'before' ? upscalerOriginalUrl : upscalerResultUrl;
+  if(!src) return;
+  document.getElementById('upscalerLightboxImg').src = src;
+  document.getElementById('upscalerLightbox').classList.add('open');
+}
+function closeUpscalerLightbox(){
+  document.getElementById('upscalerLightbox').classList.remove('open');
 }
 
 /* ─── LANGUAGE ─── */

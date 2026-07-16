@@ -26,6 +26,34 @@ function checkAuth(request, env) {
   return match && match[1] === env.ADMIN_PASSWORD;
 }
 
+// Parses special order_id formats used for subscriptions and upscale credits.
+// Formats: sub_monthly_{encodedEmail}_{timestamp}, sub_yearly_{encodedEmail}_{timestamp}, upscale_{encodedEmail}_{timestamp}
+// Uses lastIndexOf("_") to split off the timestamp so emails containing underscores parse correctly.
+function parseSpecialOrderId(orderId) {
+  var prefixes = [
+    { key: "sub_monthly_", type: "sub_monthly" },
+    { key: "sub_yearly_", type: "sub_yearly" },
+    { key: "upscale_", type: "upscale" },
+  ];
+  for (var i = 0; i < prefixes.length; i++) {
+    var p = prefixes[i];
+    if (orderId.indexOf(p.key) === 0) {
+      var rest = orderId.slice(p.key.length);
+      var lastUnderscore = rest.lastIndexOf("_");
+      if (lastUnderscore === -1) return null;
+      var encodedEmail = rest.substring(0, lastUnderscore);
+      var email = "";
+      try {
+        email = decodeURIComponent(encodedEmail);
+      } catch (e) {
+        email = encodedEmail;
+      }
+      return { type: p.type, email: email };
+    }
+  }
+  return null;
+}
+
 export default {
   async fetch(request, env) {
     var url = new URL(request.url);
@@ -90,6 +118,33 @@ export default {
           ).run();
 
           console.log("Order saved:", orderId, status);
+
+          // Handle subscription/upscale-credit order types, idempotently
+          var special = parseSpecialOrderId(orderId);
+          if (special) {
+            var creditRow = await env.DB.prepare("SELECT credited FROM orders WHERE order_id = ?").bind(orderId).first();
+            var alreadyCredited = creditRow && creditRow.credited === 1;
+            if (!alreadyCredited) {
+              if (special.type === "sub_monthly" || special.type === "sub_yearly") {
+                var planKey = special.type === "sub_monthly" ? "monthly" : "yearly";
+                var durationDays = special.type === "sub_monthly" ? 30 : 365;
+                var existingSub = await env.DB.prepare("SELECT expires_at FROM subscriptions WHERE email = ?").bind(special.email).first();
+                var baseDate = new Date();
+                if (existingSub && new Date(existingSub.expires_at) > baseDate) {
+                  baseDate = new Date(existingSub.expires_at);
+                }
+                var newExpiry = new Date(baseDate.getTime() + durationDays * 24 * 60 * 60 * 1000);
+                await env.DB.prepare(
+                  "INSERT INTO subscriptions (email, plan_key, expires_at, updated_at) VALUES (?, ?, ?, datetime('now')) " +
+                  "ON CONFLICT(email) DO UPDATE SET plan_key = excluded.plan_key, expires_at = excluded.expires_at, updated_at = datetime('now')"
+                ).bind(special.email, planKey, newExpiry.toISOString()).run();
+              } else if (special.type === "upscale") {
+                // Legacy path: direct upscale-credit purchases were replaced by subscription-based access.
+                // Kept only so any old payment link still gets marked credited instead of erroring.
+              }
+              await env.DB.prepare("UPDATE orders SET credited = 1 WHERE order_id = ?").bind(orderId).run();
+            }
+          }
         } else {
           // For other statuses (waiting, confirming, etc.) - upsert with current status
           await env.DB.prepare(
@@ -116,8 +171,102 @@ export default {
       }
     }
 
+    // ── UPSCALER (no admin auth needed — used by regular site visitors) ──
+    if (url.pathname === "/api/upscale" && request.method === "POST") {
+      try {
+        var formData = await request.formData();
+        var upEmail = formData.get("email");
+        var multiplier = parseInt(formData.get("multiplier"), 10) || 2;
+        var file = formData.get("image");
+
+        if (!upEmail) {
+          return json({ error: "EMAIL_REQUIRED" }, 400);
+        }
+        if (!file) {
+          return json({ error: "NO_FILE" }, 400);
+        }
+        if (file.size > 20 * 1024 * 1024) {
+          return json({ error: "FILE_TOO_LARGE" }, 400);
+        }
+        var allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+        if (allowedTypes.indexOf(file.type) === -1) {
+          return json({ error: "INVALID_FILE_TYPE" }, 400);
+        }
+
+        // Monthly upscale credit limits per plan (edit here if pricing changes)
+        var UPSCALE_MONTHLY_LIMITS = { monthly: 40, yearly: 50 };
+
+        var freeUseRow = await env.DB.prepare("SELECT COUNT(*) AS cnt FROM upscale_usage WHERE email = ? AND is_free_use = 1").bind(upEmail).first();
+        var hasFreeUse = !freeUseRow || freeUseRow.cnt === 0;
+        var isThisUseFree = hasFreeUse;
+
+        if (!hasFreeUse) {
+          var subRow = await env.DB.prepare("SELECT plan_key, expires_at FROM subscriptions WHERE email = ?").bind(upEmail).first();
+          var isSubscribed = subRow && new Date(subRow.expires_at) > new Date();
+          if (!isSubscribed) {
+            return json({ error: "PAYMENT_REQUIRED" }, 402);
+          }
+          var monthlyLimit = UPSCALE_MONTHLY_LIMITS[subRow.plan_key] || 0;
+          var usedThisMonthRow = await env.DB.prepare(
+            "SELECT COUNT(*) AS cnt FROM upscale_usage WHERE email = ? AND is_free_use = 0 AND strftime('%Y-%m', used_at) = strftime('%Y-%m','now')"
+          ).bind(upEmail).first();
+          var usedThisMonth = usedThisMonthRow ? usedThisMonthRow.cnt : 0;
+          if (usedThisMonth >= monthlyLimit) {
+            return json({ error: "MONTHLY_LIMIT_REACHED", limit: monthlyLimit, used: usedThisMonth }, 402);
+          }
+        }
+
+        var fileBuffer = await file.arrayBuffer();
+        var infoStream = new Response(fileBuffer).body;
+        var info = await env.IMAGES.info(infoStream);
+        var origWidth = info.width;
+        var origHeight = info.height;
+
+        var targetWidth = origWidth * multiplier;
+        var targetHeight = origHeight * multiplier;
+        var maxPixels = 8000000;
+        if (targetWidth * targetHeight > maxPixels) {
+          var scaleDown = Math.sqrt(maxPixels / (targetWidth * targetHeight));
+          targetWidth = Math.round(targetWidth * scaleDown);
+          targetHeight = Math.round(targetHeight * scaleDown);
+        }
+
+        var inputStream = new Response(fileBuffer).body;
+        var transformed = await env.IMAGES.input(inputStream)
+          .transform({ width: targetWidth, height: targetHeight, fit: "contain", upscale: "generate" })
+          .output({ format: "image/webp", quality: 100 });
+
+        var outputResponse = transformed.response();
+
+        await env.DB.prepare(
+          "INSERT INTO upscale_usage (email, is_free_use, used_at) VALUES (?, ?, datetime('now'))"
+        ).bind(upEmail, isThisUseFree ? 1 : 0).run();
+
+        var outHeaders = new Headers(outputResponse.headers);
+        outHeaders.set("Access-Control-Allow-Origin", "*");
+        return new Response(outputResponse.body, { status: 200, headers: outHeaders });
+      } catch (err) {
+        console.error("Upscale error:", err.message);
+        return json({ error: "UPSCALE_FAILED", details: err.message }, 500);
+      }
+    }
+
+    if (url.pathname === "/api/public/subscription-status" && request.method === "GET") {
+      var subEmail = url.searchParams.get("email");
+      if (!subEmail) {
+        return json({ error: "EMAIL_REQUIRED" }, 400);
+      }
+      var subStatusRow = await env.DB.prepare("SELECT plan_key, expires_at FROM subscriptions WHERE email = ?").bind(subEmail).first();
+      var active = subStatusRow && new Date(subStatusRow.expires_at) > new Date();
+      return json({
+        active: !!active,
+        plan_key: active ? subStatusRow.plan_key : null,
+        expires_at: active ? subStatusRow.expires_at : null,
+      });
+    }
+
     // ── PUBLIC ROUTES ──
-    var PUBLIC_ROUTES = ["/api/login", "/api/public/mockups", "/api/public/categories", "/api/public/tutorials", "/api/public/plans", "/api/webhook"];
+    var PUBLIC_ROUTES = ["/api/login", "/api/public/mockups", "/api/public/categories", "/api/public/tutorials", "/api/public/plans", "/api/webhook", "/api/upscale", "/api/public/subscription-status"];
     var isApiRoute = url.pathname.startsWith("/api/");
     var publicMockupItemMatch = url.pathname.match(/^\/api\/public\/mockup\/(\d+)$/);
     var publicTutorialItemMatch = url.pathname.match(/^\/api\/public\/tutorial\/(\d+)$/);
