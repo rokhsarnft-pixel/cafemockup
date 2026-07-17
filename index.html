@@ -2220,10 +2220,23 @@ function runUpscale(){
         document.getElementById('upscalerBeforeImg').src = upscalerOriginalUrl;
         document.getElementById('upscalerAfterImg').src = upscalerResultUrl;
         document.getElementById('upscalerDownloadBtn').onclick = function(){
-          const a = document.createElement('a');
-          a.href = upscalerResultUrl;
-          a.download = 'upscaled-' + upscalerMultiplier + 'x.webp';
-          a.click();
+          const img = new Image();
+          img.onload = function(){
+            const canvas = document.createElement('canvas');
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            canvas.toBlob(function(pngBlob){
+              const pngUrl = URL.createObjectURL(pngBlob);
+              const a = document.createElement('a');
+              a.href = pngUrl;
+              a.download = 'upscaled-' + upscalerMultiplier + 'x.png';
+              a.click();
+              setTimeout(function(){ URL.revokeObjectURL(pngUrl); }, 2000);
+            }, 'image/png');
+          };
+          img.src = upscalerResultUrl;
         };
         document.getElementById('upscalerResult').style.display = 'block';
         btn.disabled = false;
