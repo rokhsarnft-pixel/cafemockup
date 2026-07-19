@@ -90,7 +90,7 @@ export async function onRequest(context) {
   html = replaceOnce(html, /<meta name="twitter:title" content="[^"]*">/, '<meta name="twitter:title" content="' + escapeHtml(pageTitle) + '">');
   html = replaceOnce(html, /<meta name="twitter:description" content="[^"]*">/, '<meta name="twitter:description" content="' + escapeHtml(desc) + '">');
   html = replaceOnce(html, /<meta name="twitter:image" content="[^"]*">/, '<meta name="twitter:image" content="' + imageUrl + '">');
-  html = replaceOnce(html, /<\/head>/, '<script type="application/ld+json">' + productSchema + '</script></head>');
+  html = replaceOnce(html, /<\/head>/, '<script type="application/ld+json" id="mdProductSchema">' + productSchema + '</script></head>');
 
   return new Response(html, {
     status: 200,
