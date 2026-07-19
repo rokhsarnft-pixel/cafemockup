@@ -29,6 +29,28 @@ function checkAuth(request, env) {
 // Parses special order_id formats used for subscriptions and upscale credits.
 // Formats: sub_monthly_{encodedEmail}_{timestamp}, sub_yearly_{encodedEmail}_{timestamp}, upscale_{encodedEmail}_{timestamp}
 // Uses lastIndexOf("_") to split off the timestamp so emails containing underscores parse correctly.
+// Converts an ArrayBuffer to a base64 string in fixed-size chunks (avoids call-stack limits on large images)
+function bufferToBase64(buffer) {
+  var bytes = new Uint8Array(buffer);
+  var binary = "";
+  var chunkSize = 8192;
+  for (var i = 0; i < bytes.length; i += chunkSize) {
+    var chunk = bytes.subarray(i, i + chunkSize);
+    binary += String.fromCharCode.apply(null, chunk);
+  }
+  return btoa(binary);
+}
+
+// Converts a base64 string back to an ArrayBuffer
+function base64ToArrayBuffer(base64) {
+  var binaryString = atob(base64);
+  var bytes = new Uint8Array(binaryString.length);
+  for (var i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes.buffer;
+}
+
 function parseSpecialOrderId(orderId) {
   var prefixes = [
     { key: "sub_monthly_", type: "sub_monthly" },
@@ -230,21 +252,37 @@ export default {
           targetWidth = Math.round(targetWidth * scaleDown);
           targetHeight = Math.round(targetHeight * scaleDown);
         }
+        var targetMegapixels = Math.min(128, Math.max(1, Math.round((targetWidth * targetHeight) / 1000000)));
 
-        var inputStream = new Response(fileBuffer).body;
-        var transformed = await env.IMAGES.input(inputStream)
-          .transform({ width: targetWidth, height: targetHeight, fit: "contain", upscale: "generate" })
-          .output({ format: "image/webp", quality: 100 });
+        var base64Image = bufferToBase64(fileBuffer);
+        var dataUri = "data:" + file.type + ";base64," + base64Image;
 
-        var outputResponse = transformed.response();
+        var aiResult = await env.AI.run("pruna/p-image-upscale", {
+          image: dataUri,
+          target: targetMegapixels,
+          enhance_details: true,
+          output_format: "jpg",
+        });
+
+        if (!aiResult || !aiResult.result || !aiResult.result.image) {
+          throw new Error("Upscale model returned no image");
+        }
+
+        var resultDataUri = aiResult.result.image;
+        var commaIdx = resultDataUri.indexOf(",");
+        var semiIdx = resultDataUri.indexOf(";");
+        var resultMime = resultDataUri.substring(5, semiIdx) || "image/jpeg";
+        var resultBase64 = resultDataUri.substring(commaIdx + 1);
+        var outputBuffer = base64ToArrayBuffer(resultBase64);
 
         await env.DB.prepare(
           "INSERT INTO upscale_usage (email, is_free_use, used_at) VALUES (?, ?, datetime('now'))"
         ).bind(upEmail, isThisUseFree ? 1 : 0).run();
 
-        var outHeaders = new Headers(outputResponse.headers);
+        var outHeaders = new Headers();
+        outHeaders.set("Content-Type", resultMime);
         outHeaders.set("Access-Control-Allow-Origin", "*");
-        return new Response(outputResponse.body, { status: 200, headers: outHeaders });
+        return new Response(outputBuffer, { status: 200, headers: outHeaders });
       } catch (err) {
         console.error("Upscale error:", err.message);
         return json({ error: "UPSCALE_FAILED", details: err.message }, 500);

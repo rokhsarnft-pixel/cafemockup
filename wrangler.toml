@@ -9,3 +9,6 @@ database_id = "24562aae-75b9-4705-affd-0b6130e4ffdd"
 
 [images]
 binding = "IMAGES"
+
+[ai]
+binding = "AI"
