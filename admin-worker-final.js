@@ -304,7 +304,7 @@ export default {
     }
 
     // ── PUBLIC ROUTES ──
-    var PUBLIC_ROUTES = ["/api/login", "/api/public/mockups", "/api/public/categories", "/api/public/tutorials", "/api/public/plans", "/api/webhook", "/api/upscale", "/api/public/subscription-status"];
+    var PUBLIC_ROUTES = ["/api/login", "/api/public/mockups", "/api/public/categories", "/api/public/tutorials", "/api/public/plans", "/api/webhook", "/api/upscale", "/api/public/subscription-status", "/api/public/lead"];
     var isApiRoute = url.pathname.startsWith("/api/");
     var publicMockupItemMatch = url.pathname.match(/^\/api\/public\/mockup\/(\d+)$/);
     var publicTutorialItemMatch = url.pathname.match(/^\/api\/public\/tutorial\/(\d+)$/);
@@ -312,6 +312,26 @@ export default {
 
     if (isApiRoute && !isPublicRoute && !checkAuth(request, env)) {
       return json({ error: "Unauthorized" }, 401);
+    }
+
+    // ── EMAIL LEAD CAPTURE (no auth needed — called right after the on-site email modal) ──
+    if (url.pathname === "/api/public/lead" && request.method === "POST") {
+      try {
+        var leadBody = await request.json();
+        var leadEmail = (leadBody.email || "").trim().toLowerCase();
+        var leadSource = leadBody.source || "unknown";
+        if (!leadEmail) {
+          return json({ error: "EMAIL_REQUIRED" }, 400);
+        }
+        await env.DB.prepare(
+          "INSERT INTO email_leads (email, source, created_at, last_seen_at) VALUES (?, ?, datetime('now'), datetime('now')) " +
+          "ON CONFLICT(email) DO UPDATE SET last_seen_at = datetime('now'), source = excluded.source"
+        ).bind(leadEmail, leadSource).run();
+        return json({ ok: true });
+      } catch (err) {
+        console.error("Lead save error:", err.message);
+        return json({ error: "LEAD_SAVE_FAILED", details: err.message }, 500);
+      }
     }
 
     if (publicMockupItemMatch && request.method === "GET") {
@@ -563,6 +583,17 @@ export default {
       return json({ ok: true });
     }
 
+    if (url.pathname === "/api/leads" && request.method === "GET") {
+      var rLeads = await env.DB.prepare("SELECT * FROM email_leads ORDER BY last_seen_at DESC LIMIT 1000").all();
+      return json(rLeads.results);
+    }
+
+    var leadIdMatch = url.pathname.match(/^\/api\/leads\/(\d+)$/);
+    if (leadIdMatch && request.method === "DELETE") {
+      await env.DB.prepare("DELETE FROM email_leads WHERE id=?").bind(leadIdMatch[1]).run();
+      return json({ ok: true });
+    }
+
     if (url.pathname === "/api/settings" && request.method === "GET") {
       var r8 = await env.DB.prepare("SELECT * FROM settings").all();
       return json(r8.results);
@@ -670,6 +701,7 @@ function getDashboardHtml() {
 '<button class="tab" onclick="showTab(\'tutorials\',this)">Tutorials</button>' +
 '<button class="tab" onclick="showTab(\'plans\',this)">Plans</button>' +
 '<button class="tab" onclick="showTab(\'orders\',this)">Orders</button>' +
+'<button class="tab" onclick="showTab(\'leads\',this)">Leads</button>' +
 '<button class="tab" onclick="showTab(\'settings\',this)">Settings</button>' +
 '</div>' +
 '<div class="panel active" id="panel-mockups">' +
@@ -696,6 +728,10 @@ function getDashboardHtml() {
 '</div>' +
 '<div class="panel" id="panel-orders">' +
 '<table><thead><tr><th>Order ID</th><th>Email</th><th>Mockup</th><th>Amount</th><th>Currency</th><th>Status</th><th>Date</th></tr></thead><tbody id="ordersTableBody"></tbody></table>' +
+'</div>' +
+'<div class="panel" id="panel-leads">' +
+'<div class="toolbar"><span id="leadCount" style="font-size:.85rem;color:rgba(255,255,255,.4)"></span><button class="btn" onclick="exportLeadsCsv()">Export CSV</button></div>' +
+'<table><thead><tr><th>Email</th><th>Source</th><th>First Seen</th><th>Last Seen</th><th>Actions</th></tr></thead><tbody id="leadsTableBody"></tbody></table>' +
 '</div>' +
 '<div class="panel" id="panel-settings"><div id="settingsList"></div></div>' +
 '</div>' +
@@ -792,7 +828,7 @@ function getDashboardHtml() {
 'if(d.ok){document.getElementById("loginScreen").style.display="none";document.getElementById("dashboard").style.display="block";loadAll();}' +
 'else{document.getElementById("loginError").style.display="block";}' +
 '});}' +
-'function loadAll(){loadMockups();loadCategories();loadTutorials();loadPlans();loadOrders();loadSettings();}' +
+'function loadAll(){loadMockups();loadCategories();loadTutorials();loadPlans();loadOrders();loadLeads();loadSettings();}' +
 'function showTab(name,btn){' +
 'document.querySelectorAll(".tab").forEach(function(t){t.classList.remove("active");});' +
 'document.querySelectorAll(".panel").forEach(function(p){p.classList.remove("active");});' +
@@ -1103,6 +1139,27 @@ function getDashboardHtml() {
 'var tbody=document.getElementById("ordersTableBody");' +
 'if(!data.length){tbody.innerHTML="<tr class=\'empty-row\'><td colspan=\'7\'>No orders yet.</td></tr>";return;}' +
 'tbody.innerHTML=data.map(function(o){return "<tr><td style=\'font-family:monospace;font-size:.75rem\'>"+esc(o.order_id||"")+"</td><td>"+esc(o.customer_email||"&#8212;")+"</td><td>"+esc(o.mockup_name||"&#8212;")+"</td><td>$"+(o.amount_usd||0)+"</td><td>"+esc(o.pay_currency||"&#8212;")+"</td><td><span class=\'badge status-"+(o.status||"")+"\'>"+(o.status||"&#8212;")+"</span></td><td style=\'font-size:.75rem\'>"+esc(o.created_at||"")+"</td></tr>";}).join("");});' +
+'}' +
+'function loadLeads(){' +
+'fetch("/api/leads",{credentials:"include"}).then(function(r){return r.json();}).then(function(data){' +
+'window.__leadsCache=data;' +
+'var tbody=document.getElementById("leadsTableBody");' +
+'document.getElementById("leadCount").textContent=data.length+" leads";' +
+'if(!data.length){tbody.innerHTML="<tr class=\'empty-row\'><td colspan=\'5\'>No leads yet.</td></tr>";return;}' +
+'tbody.innerHTML=data.map(function(l){return "<tr><td>"+esc(l.email||"")+"</td><td>"+esc(l.source||"&#8212;")+"</td><td style=\'font-size:.75rem\'>"+esc(l.created_at||"")+"</td><td style=\'font-size:.75rem\'>"+esc(l.last_seen_at||"")+"</td><td><button class=\'btn btn-danger btn-sm\' onclick=\'deleteLead("+l.id+")\'>Del</button></td></tr>";}).join("");});' +
+'}' +
+'function deleteLead(id){if(!confirm("Delete this lead?"))return;fetch("/api/leads/"+id,{method:"DELETE",credentials:"include"}).then(loadLeads);}' +
+'function exportLeadsCsv(){' +
+'var data=window.__leadsCache||[];' +
+'if(!data.length){alert("No leads to export.");return;}' +
+'var rows=[["email","source","created_at","last_seen_at"]];' +
+'data.forEach(function(l){rows.push([l.email||"",l.source||"",l.created_at||"",l.last_seen_at||""]);});' +
+'var csv=rows.map(function(r){return r.map(function(v){return "\\""+String(v).replace(/"/g,"\\"\\"")+"\\"";}).join(",");}).join("\\n");' +
+'var blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});' +
+'var link=document.createElement("a");' +
+'link.href=URL.createObjectURL(blob);' +
+'link.download="cafemockup-leads.csv";' +
+'link.click();' +
 '}' +
 'function loadSettings(){' +
 'fetch("/api/settings",{credentials:"include"}).then(function(r){return r.json();}).then(function(data){' +

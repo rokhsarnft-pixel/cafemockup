@@ -1608,6 +1608,7 @@ function switchMockupImage(el, src){
 
 /* ── EMAIL CAPTURE — required once per browser before any download ── */
 let pendingEmailAction = null; // function to run after email is captured
+let pendingEmailSource = 'unknown'; // what triggered the email modal, saved alongside the lead
 
 function getSavedEmail(){
   try { return localStorage.getItem('mc_user_email'); } catch(e) { return null; }
@@ -1618,8 +1619,22 @@ function saveEmail(email){
 function isValidEmail(email){
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
-function openEmailModal(onConfirmed){
+
+// Sends the captured email + the action that triggered it to the admin database as a lead.
+// Fire-and-forget: failures here should never block the user's download/purchase flow.
+function saveLeadToDatabase(email, source){
+  try {
+    fetch(ADMIN_API_URL + '/api/public/lead', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email, source: source || 'unknown' })
+    }).catch(function(e){ console.error('Lead save failed:', e); });
+  } catch(e) { console.error('Lead save failed:', e); }
+}
+
+function openEmailModal(onConfirmed, source){
   pendingEmailAction = onConfirmed;
+  pendingEmailSource = source || 'unknown';
   document.getElementById('emailModalError').style.display = 'none';
   const saved = getSavedEmail();
   document.getElementById('emailModalInput').value = saved || '';
@@ -1642,6 +1657,7 @@ function submitEmailModal(){
   }
 
   saveEmail(email);
+  saveLeadToDatabase(email, pendingEmailSource);
   document.getElementById('emailModalOverlay').style.display = 'none';
   updateNavLoginButton();
   const action = pendingEmailAction;
@@ -1650,12 +1666,12 @@ function submitEmailModal(){
 }
 
 // Wraps any download/buy action so it always runs through email capture first
-function requireEmail(action){
+function requireEmail(action, source){
   const existing = getSavedEmail();
   if(existing && isValidEmail(existing)){
     action(existing);
   } else {
-    openEmailModal(action);
+    openEmailModal(action, source);
   }
 }
 
@@ -1688,7 +1704,7 @@ function handleNavLoginClick(){
     try { localStorage.removeItem('mc_user_email'); } catch(e) {}
     updateNavLoginButton();
   } else {
-    openEmailModal(() => updateNavLoginButton());
+    openEmailModal(() => updateNavLoginButton(), 'login');
   }
 }
 
@@ -1722,7 +1738,7 @@ function handleFreeDownload(url){
     alert(lang==='fa' ? 'فایل به‌زودی اضافه می‌شود.' : 'File coming soon.');
     return;
   }
-  requireEmail(() => window.open(url, '_blank'));
+  requireEmail(() => window.open(url, '_blank'), 'free_download');
 }
 
 function handleBuyMockup(price, name, downloadUrl){
@@ -1738,7 +1754,7 @@ function handleBuyMockup(price, name, downloadUrl){
     pendingDownloadUrl = downloadUrl;
     setPaymentOrder(parseFloat(price), name);
     goPage('payment', null);
-  });
+  }, 'buy_mockup');
 }
 
 /* ─── FILTER BUTTONS ─── */
@@ -2253,7 +2269,7 @@ function runUpscale(){
           errorBox.style.display = 'block';
         }
       });
-  });
+  }, 'upscaler');
 }
 
 function goToUpscalePayment(){
