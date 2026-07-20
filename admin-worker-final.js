@@ -314,19 +314,23 @@ export default {
       return json({ error: "Unauthorized" }, 401);
     }
 
-    // ── EMAIL LEAD CAPTURE (no auth needed — called right after the on-site email modal) ──
+    // ── EMAIL LEAD CAPTURE + ACTIVITY LOG (no auth needed — called on every download/buy/upscale/login action) ──
     if (url.pathname === "/api/public/lead" && request.method === "POST") {
       try {
         var leadBody = await request.json();
         var leadEmail = (leadBody.email || "").trim().toLowerCase();
         var leadSource = leadBody.source || "unknown";
+        var leadDetail = leadBody.detail || "";
         if (!leadEmail) {
           return json({ error: "EMAIL_REQUIRED" }, 400);
         }
         await env.DB.prepare(
-          "INSERT INTO email_leads (email, source, created_at, last_seen_at) VALUES (?, ?, datetime('now'), datetime('now')) " +
-          "ON CONFLICT(email) DO UPDATE SET last_seen_at = datetime('now'), source = excluded.source"
-        ).bind(leadEmail, leadSource).run();
+          "INSERT INTO email_leads (email, source, created_at, last_seen_at, last_action, last_action_detail, last_action_at) VALUES (?, ?, datetime('now'), datetime('now'), ?, ?, datetime('now')) " +
+          "ON CONFLICT(email) DO UPDATE SET last_seen_at = datetime('now'), last_action = excluded.last_action, last_action_detail = excluded.last_action_detail, last_action_at = datetime('now')"
+        ).bind(leadEmail, leadSource, leadSource, leadDetail).run();
+        await env.DB.prepare(
+          "INSERT INTO lead_events (email, action, detail, created_at) VALUES (?, ?, ?, datetime('now'))"
+        ).bind(leadEmail, leadSource, leadDetail).run();
         return json({ ok: true });
       } catch (err) {
         console.error("Lead save error:", err.message);
@@ -588,6 +592,15 @@ export default {
       return json(rLeads.results);
     }
 
+    if (url.pathname === "/api/leads/events" && request.method === "GET") {
+      var eventsEmail = (url.searchParams.get("email") || "").trim().toLowerCase();
+      if (!eventsEmail) {
+        return json({ error: "EMAIL_REQUIRED" }, 400);
+      }
+      var rEvents = await env.DB.prepare("SELECT * FROM lead_events WHERE email = ? ORDER BY created_at DESC LIMIT 300").bind(eventsEmail).all();
+      return json(rEvents.results);
+    }
+
     var leadIdMatch = url.pathname.match(/^\/api\/leads\/(\d+)$/);
     if (leadIdMatch && request.method === "DELETE") {
       await env.DB.prepare("DELETE FROM email_leads WHERE id=?").bind(leadIdMatch[1]).run();
@@ -731,7 +744,7 @@ function getDashboardHtml() {
 '</div>' +
 '<div class="panel" id="panel-leads">' +
 '<div class="toolbar"><span id="leadCount" style="font-size:.85rem;color:rgba(255,255,255,.4)"></span><button class="btn" onclick="exportLeadsCsv()">Export CSV</button></div>' +
-'<table><thead><tr><th>Email</th><th>Source</th><th>First Seen</th><th>Last Seen</th><th>Actions</th></tr></thead><tbody id="leadsTableBody"></tbody></table>' +
+'<table><thead><tr><th>Email</th><th>Last Action</th><th>Detail</th><th>Last Action At</th><th>First Seen</th><th>Last Seen</th><th>Actions</th></tr></thead><tbody id="leadsTableBody"></tbody></table>' +
 '</div>' +
 '<div class="panel" id="panel-settings"><div id="settingsList"></div></div>' +
 '</div>' +
@@ -818,6 +831,12 @@ function getDashboardHtml() {
 '<div class="form-row"><label>Order (lower shows first)</label><input type="number" id="pFieldOrder" value="0"></div>' +
 '<div class="form-row form-row-inline"><input type="checkbox" id="pFieldActive" checked><label>Visible on site</label></div>' +
 '<div class="modal-actions"><button class="btn" onclick="closePlanForm()">Cancel</button><button class="btn btn-primary" onclick="savePlan()">Save Plan</button></div>' +
+'</div></div>' +
+'<div class="modal-overlay" id="leadEventsModalOverlay">' +
+'<div class="modal">' +
+'<h3>Activity — <span id="leadEventsEmail"></span></h3>' +
+'<table><thead><tr><th>Action</th><th>Detail</th><th>Date</th></tr></thead><tbody id="leadEventsTableBody"></tbody></table>' +
+'<div class="modal-actions"><button class="btn" onclick="closeLeadEventsModal()">Close</button></div>' +
 '</div></div>' +
 '<script>' +
 'var categories=[];' +
@@ -1145,15 +1164,26 @@ function getDashboardHtml() {
 'window.__leadsCache=data;' +
 'var tbody=document.getElementById("leadsTableBody");' +
 'document.getElementById("leadCount").textContent=data.length+" leads";' +
-'if(!data.length){tbody.innerHTML="<tr class=\'empty-row\'><td colspan=\'5\'>No leads yet.</td></tr>";return;}' +
-'tbody.innerHTML=data.map(function(l){return "<tr><td>"+esc(l.email||"")+"</td><td>"+esc(l.source||"&#8212;")+"</td><td style=\'font-size:.75rem\'>"+esc(l.created_at||"")+"</td><td style=\'font-size:.75rem\'>"+esc(l.last_seen_at||"")+"</td><td><button class=\'btn btn-danger btn-sm\' onclick=\'deleteLead("+l.id+")\'>Del</button></td></tr>";}).join("");});' +
+'if(!data.length){tbody.innerHTML="<tr class=\'empty-row\'><td colspan=\'7\'>No leads yet.</td></tr>";return;}' +
+'tbody.innerHTML=data.map(function(l){return "<tr><td>"+esc(l.email||"")+"</td><td>"+esc(l.last_action||"&#8212;")+"</td><td>"+esc(l.last_action_detail||"&#8212;")+"</td><td style=\'font-size:.75rem\'>"+esc(l.last_action_at||"&#8212;")+"</td><td style=\'font-size:.75rem\'>"+esc(l.created_at||"")+"</td><td style=\'font-size:.75rem\'>"+esc(l.last_seen_at||"")+"</td><td style=\'white-space:nowrap\'><button class=\'btn btn-edit btn-sm\' data-lead-email=\'"+esc(l.email)+"\' onclick=\'viewLeadEvents(this.dataset.leadEmail)\'>Activity</button> <button class=\'btn btn-danger btn-sm\' onclick=\'deleteLead("+l.id+")\'>Del</button></td></tr>";}).join("");});' +
 '}' +
 'function deleteLead(id){if(!confirm("Delete this lead?"))return;fetch("/api/leads/"+id,{method:"DELETE",credentials:"include"}).then(loadLeads);}' +
+'function viewLeadEvents(email){' +
+'document.getElementById("leadEventsEmail").textContent=email;' +
+'document.getElementById("leadEventsModalOverlay").classList.add("open");' +
+'document.getElementById("leadEventsTableBody").innerHTML="<tr class=\'empty-row\'><td colspan=\'3\'>Loading...</td></tr>";' +
+'fetch("/api/leads/events?email="+encodeURIComponent(email),{credentials:"include"}).then(function(r){return r.json();}).then(function(data){' +
+'var tbody=document.getElementById("leadEventsTableBody");' +
+'if(!data.length){tbody.innerHTML="<tr class=\'empty-row\'><td colspan=\'3\'>No activity recorded yet.</td></tr>";return;}' +
+'tbody.innerHTML=data.map(function(ev){return "<tr><td>"+esc(ev.action||"&#8212;")+"</td><td>"+esc(ev.detail||"&#8212;")+"</td><td style=\'font-size:.75rem\'>"+esc(ev.created_at||"")+"</td></tr>";}).join("");' +
+'});' +
+'}' +
+'function closeLeadEventsModal(){document.getElementById("leadEventsModalOverlay").classList.remove("open");}' +
 'function exportLeadsCsv(){' +
 'var data=window.__leadsCache||[];' +
 'if(!data.length){alert("No leads to export.");return;}' +
-'var rows=[["email","source","created_at","last_seen_at"]];' +
-'data.forEach(function(l){rows.push([l.email||"",l.source||"",l.created_at||"",l.last_seen_at||""]);});' +
+'var rows=[["email","last_action","last_action_detail","last_action_at","created_at","last_seen_at"]];' +
+'data.forEach(function(l){rows.push([l.email||"",l.last_action||"",l.last_action_detail||"",l.last_action_at||"",l.created_at||"",l.last_seen_at||""]);});' +
 'var csv=rows.map(function(r){return r.map(function(v){return "\\""+String(v).replace(/"/g,"\\"\\"")+"\\"";}).join(",");}).join("\\n");' +
 'var blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});' +
 'var link=document.createElement("a");' +

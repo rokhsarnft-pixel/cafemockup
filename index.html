@@ -1469,7 +1469,7 @@ function renderMockups(items,containerId){
       <div class="m-body" onclick="openMockupDetail('${key}')" role="button" style="cursor:pointer;"><h4>${lang==='fa'?m.fa:m.en}</h4><p>${m.cat}</p></div>
       <div class="m-foot">
         <span class="m-price">${m.price}</span>
-        <button class="m-btn" onclick="${m.free ? `handleFreeDownload('${m.downloadUrl||''}')` : `handleBuyMockup(${JSON.stringify(m.price.replace('$','')).replace(/"/g,"'")},'${(lang==='fa'?m.fa:m.en).replace(/'/g,"\\'")}','${m.downloadUrl||''}')`}">
+        <button class="m-btn" onclick="${m.free ? `handleFreeDownload('${m.downloadUrl||''}','${(lang==='fa'?m.fa:m.en).replace(/'/g,"\\'")}')` : `handleBuyMockup(${JSON.stringify(m.price.replace('$','')).replace(/"/g,"'")},'${(lang==='fa'?m.fa:m.en).replace(/'/g,"\\'")}','${m.downloadUrl||''}')`}">
           <i class="ti ${m.free?'ti-download':'ti-currency-bitcoin'}"></i>
           ${m.free?(lang==='fa'?'دانلود':'Download'):(lang==='fa'?'خرید':'Buy')}
         </button>
@@ -1548,7 +1548,7 @@ function openMockupDetail(key, skipHistory){
   const buyBtnSub = m.free ? '' : (lang==='fa'?'خرید با کریپتو':'Buy with Crypto');
   const buyBtnIcon = m.free ? 'ti-download' : 'ti-currency-bitcoin';
   const buyAction = m.free
-    ? `handleFreeDownload('${m.downloadUrl||''}')`
+    ? `handleFreeDownload('${m.downloadUrl||''}','${(lang==='fa'?m.fa:m.en).replace(/'/g,"\\'")}')`
     : `handleBuyMockup('${m.price.replace('$','')}','${(lang==='fa'?m.fa:m.en).replace(/'/g,"\\'")}','${m.downloadUrl||''}')`;
 
   const thumbsHtml = allImages.length > 1
@@ -1609,6 +1609,7 @@ function switchMockupImage(el, src){
 /* ── EMAIL CAPTURE — required once per browser before any download ── */
 let pendingEmailAction = null; // function to run after email is captured
 let pendingEmailSource = 'unknown'; // what triggered the email modal, saved alongside the lead
+let pendingEmailDetail = ''; // extra context (mockup name, upscale size, etc.), saved alongside the lead
 
 function getSavedEmail(){
   try { return localStorage.getItem('mc_user_email'); } catch(e) { return null; }
@@ -1622,19 +1623,20 @@ function isValidEmail(email){
 
 // Sends the captured email + the action that triggered it to the admin database as a lead.
 // Fire-and-forget: failures here should never block the user's download/purchase flow.
-function saveLeadToDatabase(email, source){
+function saveLeadToDatabase(email, source, detail){
   try {
     fetch(ADMIN_API_URL + '/api/public/lead', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email, source: source || 'unknown' })
+      body: JSON.stringify({ email: email, source: source || 'unknown', detail: detail || '' })
     }).catch(function(e){ console.error('Lead save failed:', e); });
   } catch(e) { console.error('Lead save failed:', e); }
 }
 
-function openEmailModal(onConfirmed, source){
+function openEmailModal(onConfirmed, source, detail){
   pendingEmailAction = onConfirmed;
   pendingEmailSource = source || 'unknown';
+  pendingEmailDetail = detail || '';
   document.getElementById('emailModalError').style.display = 'none';
   const saved = getSavedEmail();
   document.getElementById('emailModalInput').value = saved || '';
@@ -1657,7 +1659,7 @@ function submitEmailModal(){
   }
 
   saveEmail(email);
-  saveLeadToDatabase(email, pendingEmailSource);
+  saveLeadToDatabase(email, pendingEmailSource, pendingEmailDetail);
   document.getElementById('emailModalOverlay').style.display = 'none';
   updateNavLoginButton();
   const action = pendingEmailAction;
@@ -1665,13 +1667,16 @@ function submitEmailModal(){
   if(action) action(email);
 }
 
-// Wraps any download/buy action so it always runs through email capture first
-function requireEmail(action, source){
+// Wraps any download/buy action so it always runs through email capture first.
+// Logs every real action to the database — not just the very first time an email is captured —
+// so the admin panel's lead Activity view reflects actual downloads/purchases/upscales, not just signups.
+function requireEmail(action, source, detail){
   const existing = getSavedEmail();
   if(existing && isValidEmail(existing)){
+    saveLeadToDatabase(existing, source, detail);
     action(existing);
   } else {
-    openEmailModal(action, source);
+    openEmailModal(action, source, detail);
   }
 }
 
@@ -1733,12 +1738,12 @@ function toggleLangAccordion(){
   if(acc) acc.classList.toggle('open');
 }
 
-function handleFreeDownload(url){
+function handleFreeDownload(url, name){
   if(!url){
     alert(lang==='fa' ? 'فایل به‌زودی اضافه می‌شود.' : 'File coming soon.');
     return;
   }
-  requireEmail(() => window.open(url, '_blank'), 'free_download');
+  requireEmail(() => window.open(url, '_blank'), 'free_download', name || '');
 }
 
 function handleBuyMockup(price, name, downloadUrl){
@@ -1754,7 +1759,7 @@ function handleBuyMockup(price, name, downloadUrl){
     pendingDownloadUrl = downloadUrl;
     setPaymentOrder(parseFloat(price), name);
     goPage('payment', null);
-  }, 'buy_mockup');
+  }, 'buy_mockup', name);
 }
 
 /* ─── FILTER BUTTONS ─── */
@@ -2269,7 +2274,7 @@ function runUpscale(){
           errorBox.style.display = 'block';
         }
       });
-  }, 'upscaler');
+  }, 'upscaler', upscalerMultiplier + 'x');
 }
 
 function goToUpscalePayment(){
