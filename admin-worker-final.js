@@ -862,7 +862,7 @@ function getDashboardHtml() {
 '"<img class=\'thumb-img\' src=\'"+m.image_url+"\' onerror=\'this.style.display=\\\"none\\\"\' loading=\'lazy\'>"' +
 ':"<div class=\'thumb-empty\'>&#128247;</div>";' +
 'return "<tr><td>"+thumb+"</td><td><strong>"+esc(m.name_en)+"</strong><div style=\'font-size:.75rem;color:rgba(255,255,255,.4);margin-top:2px\'>"+esc(m.name_fa||"")+"</div></td>"' +
-'+"<td>"+esc(m.category||"&#8212;")+"</td>"' +
+'+"<td>"+(m.category?esc(m.category):"&#8212;")+"</td>"' +
 '+"<td>"+(m.is_free?"<span class=\'badge free\'>Free</span>":"<span class=\'badge paid\'>$"+m.price+"</span>")+"</td>"' +
 '+"<td><span class=\'badge "+(m.is_active?"yes":"no")+"\'>"+(m.is_active?"Yes":"No")+"</span></td>"' +
 '+"<td style=\'white-space:nowrap\'><button class=\'btn btn-edit btn-sm\' onclick=\'editMockup("+JSON.stringify(m)+")\'>Edit</button> <button class=\'btn btn-danger btn-sm\' onclick=\'deleteMockup("+m.id+")\'>Del</button></td></tr>";' +
@@ -1006,8 +1006,8 @@ function getDashboardHtml() {
 '"<img class=\'thumb-img\' src=\'"+t.image_url+"\' onerror=\'this.style.display=\\\"none\\\"\' loading=\'lazy\'>"' +
 ':"<div class=\'thumb-empty\'>&#128218;</div>";' +
 'return "<tr><td>"+thumb+"</td><td><strong>"+esc(t.title_en)+"</strong><div style=\'font-size:.75rem;color:rgba(255,255,255,.4);margin-top:2px\'>"+esc(t.title_fa||"")+"</div></td>"' +
-'+"<td>"+esc(t.level||"&#8212;")+"</td>"' +
-'+"<td>"+esc(t.type||"&#8212;")+"</td>"' +
+'+"<td>"+(t.level?esc(t.level):"&#8212;")+"</td>"' +
+'+"<td>"+(t.type?esc(t.type):"&#8212;")+"</td>"' +
 '+"<td>"+(t.order_index||0)+"</td>"' +
 '+"<td><span class=\'badge "+(t.is_active?"yes":"no")+"\'>"+(t.is_active?"Yes":"No")+"</span></td>"' +
 '+"<td style=\'white-space:nowrap\'><button class=\'btn btn-edit btn-sm\' onclick=\'editTutorial("+JSON.stringify(t)+")\'>Edit</button> <button class=\'btn btn-danger btn-sm\' onclick=\'deleteTutorial("+t.id+")\'>Del</button></td></tr>";' +
@@ -1083,7 +1083,7 @@ function getDashboardHtml() {
 'document.getElementById("planCount").textContent=data.length+" plans";' +
 'if(!data.length){tbody.innerHTML="<tr class=\'empty-row\'><td colspan=\'8\'>No plans yet.</td></tr>";return;}' +
 'tbody.innerHTML=data.map(function(p){' +
-'return "<tr><td>"+esc(p.tag_en||"&#8212;")+"</td><td><strong>"+esc(p.name)+"</strong></td><td>$"+(p.price||0)+"</td>"' +
+'return "<tr><td>"+(p.tag_en?esc(p.tag_en):"&#8212;")+"</td><td><strong>"+esc(p.name)+"</strong></td><td>$"+(p.price||0)+"</td>"' +
 '+"<td><span class=\'badge "+(p.is_best?"yes":"no")+"\'>"+(p.is_best?"Yes":"No")+"</span></td>"' +
 '+"<td><span class=\'badge "+(p.is_disabled?"no":"yes")+"\'>"+(p.is_disabled?"Disabled":"Enabled")+"</span></td>"' +
 '+"<td>"+(p.order_index||0)+"</td>"' +
@@ -1157,7 +1157,7 @@ function getDashboardHtml() {
 'fetch("/api/orders",{credentials:"include"}).then(function(r){return r.json();}).then(function(data){' +
 'var tbody=document.getElementById("ordersTableBody");' +
 'if(!data.length){tbody.innerHTML="<tr class=\'empty-row\'><td colspan=\'7\'>No orders yet.</td></tr>";return;}' +
-'tbody.innerHTML=data.map(function(o){return "<tr><td style=\'font-family:monospace;font-size:.75rem\'>"+esc(o.order_id||"")+"</td><td>"+esc(o.customer_email||"&#8212;")+"</td><td>"+esc(o.mockup_name||"&#8212;")+"</td><td>$"+(o.amount_usd||0)+"</td><td>"+esc(o.pay_currency||"&#8212;")+"</td><td><span class=\'badge status-"+(o.status||"")+"\'>"+(o.status||"&#8212;")+"</span></td><td style=\'font-size:.75rem\'>"+esc(o.created_at||"")+"</td></tr>";}).join("");});' +
+'tbody.innerHTML=data.map(function(o){return "<tr><td style=\'font-family:monospace;font-size:.75rem\'>"+esc(o.order_id||"")+"</td><td>"+(o.customer_email?esc(o.customer_email):"&#8212;")+"</td><td>"+(o.mockup_name?esc(o.mockup_name):"&#8212;")+"</td><td>$"+(o.amount_usd||0)+"</td><td>"+(o.pay_currency?esc(o.pay_currency):"&#8212;")+"</td><td><span class=\'badge status-"+(o.status||"")+"\'>"+(o.status||"&#8212;")+"</span></td><td style=\'font-size:.75rem\'>"+esc(o.created_at||"")+"</td></tr>";}).join("");});' +
 '}' +
 'function loadLeads(){' +
 'fetch("/api/leads",{credentials:"include"}).then(function(r){return r.json();}).then(function(data){' +
@@ -1165,7 +1165,7 @@ function getDashboardHtml() {
 'var tbody=document.getElementById("leadsTableBody");' +
 'document.getElementById("leadCount").textContent=data.length+" leads";' +
 'if(!data.length){tbody.innerHTML="<tr class=\'empty-row\'><td colspan=\'7\'>No leads yet.</td></tr>";return;}' +
-'tbody.innerHTML=data.map(function(l){return "<tr><td>"+esc(l.email||"")+"</td><td>"+esc(l.last_action||"&#8212;")+"</td><td>"+esc(l.last_action_detail||"&#8212;")+"</td><td style=\'font-size:.75rem\'>"+esc(l.last_action_at||"&#8212;")+"</td><td style=\'font-size:.75rem\'>"+esc(l.created_at||"")+"</td><td style=\'font-size:.75rem\'>"+esc(l.last_seen_at||"")+"</td><td style=\'white-space:nowrap\'><button class=\'btn btn-edit btn-sm\' data-lead-email=\'"+esc(l.email)+"\' onclick=\'viewLeadEvents(this.dataset.leadEmail)\'>Activity</button> <button class=\'btn btn-danger btn-sm\' onclick=\'deleteLead("+l.id+")\'>Del</button></td></tr>";}).join("");});' +
+'tbody.innerHTML=data.map(function(l){return "<tr><td>"+esc(l.email||"")+"</td><td>"+(l.last_action?esc(l.last_action):"&#8212;")+"</td><td>"+(l.last_action_detail?esc(l.last_action_detail):"&#8212;")+"</td><td style=\'font-size:.75rem\'>"+(l.last_action_at?esc(l.last_action_at):"&#8212;")+"</td><td style=\'font-size:.75rem\'>"+esc(l.created_at||"")+"</td><td style=\'font-size:.75rem\'>"+esc(l.last_seen_at||"")+"</td><td style=\'white-space:nowrap\'><button class=\'btn btn-edit btn-sm\' data-lead-email=\'"+esc(l.email)+"\' onclick=\'viewLeadEvents(this.dataset.leadEmail)\'>Activity</button> <button class=\'btn btn-danger btn-sm\' onclick=\'deleteLead("+l.id+")\'>Del</button></td></tr>";}).join("");});' +
 '}' +
 'function deleteLead(id){if(!confirm("Delete this lead?"))return;fetch("/api/leads/"+id,{method:"DELETE",credentials:"include"}).then(loadLeads);}' +
 'function viewLeadEvents(email){' +
@@ -1175,7 +1175,7 @@ function getDashboardHtml() {
 'fetch("/api/leads/events?email="+encodeURIComponent(email),{credentials:"include"}).then(function(r){return r.json();}).then(function(data){' +
 'var tbody=document.getElementById("leadEventsTableBody");' +
 'if(!data.length){tbody.innerHTML="<tr class=\'empty-row\'><td colspan=\'3\'>No activity recorded yet.</td></tr>";return;}' +
-'tbody.innerHTML=data.map(function(ev){return "<tr><td>"+esc(ev.action||"&#8212;")+"</td><td>"+esc(ev.detail||"&#8212;")+"</td><td style=\'font-size:.75rem\'>"+esc(ev.created_at||"")+"</td></tr>";}).join("");' +
+'tbody.innerHTML=data.map(function(ev){return "<tr><td>"+(ev.action?esc(ev.action):"&#8212;")+"</td><td>"+(ev.detail?esc(ev.detail):"&#8212;")+"</td><td style=\'font-size:.75rem\'>"+esc(ev.created_at||"")+"</td></tr>";}).join("");' +
 '});' +
 '}' +
 'function closeLeadEventsModal(){document.getElementById("leadEventsModalOverlay").classList.remove("open");}' +
