@@ -785,7 +785,7 @@ body.ltr .search-bar .search-go{order:2;margin-left:4px;margin-right:0;}
         <div class="pay-success-icon"><i class="ti ti-circle-check"></i></div>
         <div class="pay-success-title" data-fa="پرداخت با موفقیت تأیید شد!" data-en="Payment confirmed!">Payment confirmed!</div>
         <p class="pay-success-sub" data-fa="فایل شما آماده است." data-en="Your file is ready.">Your file is ready.</p>
-        <button class="btn-gold" id="payDownloadBtn" style="margin-top:1rem;width:100%;" onclick="if(pendingDownloadUrl) window.open(pendingDownloadUrl,'_blank')">
+        <button class="btn-gold" id="payDownloadBtn" style="margin-top:1rem;width:100%;" onclick="if(pendingDownloadUrl) triggerFileDownload(pendingDownloadUrl)">
           <i class="ti ti-download"></i>
           <span data-fa="دانلود فایل" data-en="Download File">Download File</span>
         </button>
@@ -1606,6 +1606,22 @@ function switchMockupImage(el, src){
   el.classList.add('active');
 }
 
+// Triggers a file download via a temporary same-tab anchor click instead of window.open('_blank').
+// window.open for direct file downloads (not web pages) is unreliable on mobile Safari/Chrome —
+// it can be blocked as a popup or fall through to a blank new tab, which some mobile browsers then
+// resolve into a default search suggestion page. An anchor click avoids opening a new browsing
+// context entirely, so the browser just handles the file's Content-Disposition normally.
+function triggerFileDownload(url){
+  if(!url) return;
+  const a = document.createElement('a');
+  a.href = url;
+  a.rel = 'noopener';
+  a.target = '_blank';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
 /* ── EMAIL CAPTURE — required once per browser before any download ── */
 let pendingEmailAction = null; // function to run after email is captured
 let pendingEmailSource = 'unknown'; // what triggered the email modal, saved alongside the lead
@@ -1743,7 +1759,7 @@ function handleFreeDownload(url, name){
     alert(lang==='fa' ? 'فایل به‌زودی اضافه می‌شود.' : 'File coming soon.');
     return;
   }
-  requireEmail(() => window.open(url, '_blank'), 'free_download', name || '');
+  requireEmail(() => triggerFileDownload(url), 'free_download', name || '');
 }
 
 function handleBuyMockup(price, name, downloadUrl){
