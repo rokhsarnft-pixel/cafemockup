@@ -1461,18 +1461,18 @@ function renderMockups(items,containerId){
   g.innerHTML=items.map((m,i)=>{
     const key = registerMockup(m);
     return `
-    <div class="m-card" style="animation-delay:${i*.04}s">
-      <div class="m-thumb" style="${m.image?`background-image:url('${m.image}');background-size:contain;background-repeat:no-repeat;background-position:center;background-color:var(--bone2);`:`background:rgba(46,115,214,${.05+i*.02})`}" onclick="openMockupDetail('${key}')" role="button">
+    <div class="m-card" style="animation-delay:${i*.04}s;cursor:pointer;" onclick="openMockupDetail('${key}')" role="button">
+      <div class="m-thumb" style="${m.image?`background-image:url('${m.image}');background-size:contain;background-repeat:no-repeat;background-position:center;background-color:var(--bone2);`:`background:rgba(46,115,214,${.05+i*.02})`}">
         ${m.image ? '' : `<i class="ti ${m.icon}"></i>`}
         <span class="m-badge ${m.free?'b-free':'b-pro'}">${m.free?(lang==='fa'?'رایگان':'Free'):'Pro'}</span>
       </div>
-      <div class="m-body" onclick="openMockupDetail('${key}')" role="button" style="cursor:pointer;"><h4>${lang==='fa'?m.fa:m.en}</h4><p>${m.cat}</p></div>
+      <div class="m-body"><h4>${lang==='fa'?m.fa:m.en}</h4><p>${m.cat}</p></div>
       <div class="m-foot">
         <span class="m-price">${m.price}</span>
-        <button class="m-btn" onclick="${m.free ? `handleFreeDownload('${m.downloadUrl||''}','${(lang==='fa'?m.fa:m.en).replace(/'/g,"\\'")}')` : `handleBuyMockup(${JSON.stringify(m.price.replace('$','')).replace(/"/g,"'")},'${(lang==='fa'?m.fa:m.en).replace(/'/g,"\\'")}','${m.downloadUrl||''}')`}">
-          <i class="ti ${m.free?'ti-download':'ti-currency-bitcoin'}"></i>
-          ${m.free?(lang==='fa'?'دانلود':'Download'):(lang==='fa'?'خرید':'Buy')}
-        </button>
+        <span class="m-btn" style="pointer-events:none;">
+          <i class="ti ti-arrow-left"></i>
+          ${lang==='fa'?'مشاهده':'View'}
+        </span>
       </div>
     </div>`;
   }).join('');
