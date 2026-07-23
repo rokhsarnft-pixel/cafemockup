@@ -4,9 +4,6 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
-// Emails in this list get unlimited Upscaler access — no free-use limit, no subscription check.
-var ADMIN_BYPASS_EMAILS = ["aidin.ghm@gmail.com"];
-
 function json(data, status, extraHeaders) {
   if (status === undefined) status = 200;
   if (extraHeaders === undefined) extraHeaders = {};
@@ -218,33 +215,26 @@ export default {
           return json({ error: "INVALID_FILE_TYPE" }, 400);
         }
 
-        // Admin bypass: whitelisted emails skip free-use and subscription checks entirely
-        var isAdminBypass = ADMIN_BYPASS_EMAILS.indexOf(String(upEmail).toLowerCase()) !== -1;
-
         // Monthly upscale credit limits per plan (edit here if pricing changes)
         var UPSCALE_MONTHLY_LIMITS = { monthly: 40, yearly: 50 };
 
-        var isThisUseFree = false;
+        var freeUseRow = await env.DB.prepare("SELECT COUNT(*) AS cnt FROM upscale_usage WHERE email = ? AND is_free_use = 1").bind(upEmail).first();
+        var hasFreeUse = !freeUseRow || freeUseRow.cnt === 0;
+        var isThisUseFree = hasFreeUse;
 
-        if (!isAdminBypass) {
-          var freeUseRow = await env.DB.prepare("SELECT COUNT(*) AS cnt FROM upscale_usage WHERE email = ? AND is_free_use = 1").bind(upEmail).first();
-          var hasFreeUse = !freeUseRow || freeUseRow.cnt === 0;
-          isThisUseFree = hasFreeUse;
-
-          if (!hasFreeUse) {
-            var subRow = await env.DB.prepare("SELECT plan_key, expires_at FROM subscriptions WHERE email = ?").bind(upEmail).first();
-            var isSubscribed = subRow && new Date(subRow.expires_at) > new Date();
-            if (!isSubscribed) {
-              return json({ error: "PAYMENT_REQUIRED" }, 402);
-            }
-            var monthlyLimit = UPSCALE_MONTHLY_LIMITS[subRow.plan_key] || 0;
-            var usedThisMonthRow = await env.DB.prepare(
-              "SELECT COUNT(*) AS cnt FROM upscale_usage WHERE email = ? AND is_free_use = 0 AND strftime('%Y-%m', used_at) = strftime('%Y-%m','now')"
-            ).bind(upEmail).first();
-            var usedThisMonth = usedThisMonthRow ? usedThisMonthRow.cnt : 0;
-            if (usedThisMonth >= monthlyLimit) {
-              return json({ error: "MONTHLY_LIMIT_REACHED", limit: monthlyLimit, used: usedThisMonth }, 402);
-            }
+        if (!hasFreeUse) {
+          var subRow = await env.DB.prepare("SELECT plan_key, expires_at FROM subscriptions WHERE email = ?").bind(upEmail).first();
+          var isSubscribed = subRow && new Date(subRow.expires_at) > new Date();
+          if (!isSubscribed) {
+            return json({ error: "PAYMENT_REQUIRED" }, 402);
+          }
+          var monthlyLimit = UPSCALE_MONTHLY_LIMITS[subRow.plan_key] || 0;
+          var usedThisMonthRow = await env.DB.prepare(
+            "SELECT COUNT(*) AS cnt FROM upscale_usage WHERE email = ? AND is_free_use = 0 AND strftime('%Y-%m', used_at) = strftime('%Y-%m','now')"
+          ).bind(upEmail).first();
+          var usedThisMonth = usedThisMonthRow ? usedThisMonthRow.cnt : 0;
+          if (usedThisMonth >= monthlyLimit) {
+            return json({ error: "MONTHLY_LIMIT_REACHED", limit: monthlyLimit, used: usedThisMonth }, 402);
           }
         }
 
@@ -287,7 +277,7 @@ export default {
 
         await env.DB.prepare(
           "INSERT INTO upscale_usage (email, is_free_use, used_at) VALUES (?, ?, datetime('now'))"
-        ).bind(upEmail, isAdminBypass ? 1 : (isThisUseFree ? 1 : 0)).run();
+        ).bind(upEmail, isThisUseFree ? 1 : 0).run();
 
         var outHeaders = new Headers();
         outHeaders.set("Content-Type", resultMime);
@@ -314,7 +304,7 @@ export default {
     }
 
     // ── PUBLIC ROUTES ──
-    var PUBLIC_ROUTES = ["/api/login", "/api/public/mockups", "/api/public/categories", "/api/public/tutorials", "/api/public/plans", "/api/webhook", "/api/upscale", "/api/public/subscription-status"];
+    var PUBLIC_ROUTES = ["/api/login", "/api/public/mockups", "/api/public/categories", "/api/public/tutorials", "/api/public/plans", "/api/webhook", "/api/upscale", "/api/public/subscription-status", "/api/public/lead"];
     var isApiRoute = url.pathname.startsWith("/api/");
     var publicMockupItemMatch = url.pathname.match(/^\/api\/public\/mockup\/(\d+)$/);
     var publicTutorialItemMatch = url.pathname.match(/^\/api\/public\/tutorial\/(\d+)$/);
@@ -322,6 +312,30 @@ export default {
 
     if (isApiRoute && !isPublicRoute && !checkAuth(request, env)) {
       return json({ error: "Unauthorized" }, 401);
+    }
+
+    // ── EMAIL LEAD CAPTURE + ACTIVITY LOG (no auth needed — called on every download/buy/upscale/login action) ──
+    if (url.pathname === "/api/public/lead" && request.method === "POST") {
+      try {
+        var leadBody = await request.json();
+        var leadEmail = (leadBody.email || "").trim().toLowerCase();
+        var leadSource = leadBody.source || "unknown";
+        var leadDetail = leadBody.detail || "";
+        if (!leadEmail) {
+          return json({ error: "EMAIL_REQUIRED" }, 400);
+        }
+        await env.DB.prepare(
+          "INSERT INTO email_leads (email, source, created_at, last_seen_at, last_action, last_action_detail, last_action_at) VALUES (?, ?, datetime('now'), datetime('now'), ?, ?, datetime('now')) " +
+          "ON CONFLICT(email) DO UPDATE SET last_seen_at = datetime('now'), last_action = excluded.last_action, last_action_detail = excluded.last_action_detail, last_action_at = datetime('now')"
+        ).bind(leadEmail, leadSource, leadSource, leadDetail).run();
+        await env.DB.prepare(
+          "INSERT INTO lead_events (email, action, detail, created_at) VALUES (?, ?, ?, datetime('now'))"
+        ).bind(leadEmail, leadSource, leadDetail).run();
+        return json({ ok: true });
+      } catch (err) {
+        console.error("Lead save error:", err.message);
+        return json({ error: "LEAD_SAVE_FAILED", details: err.message }, 500);
+      }
     }
 
     if (publicMockupItemMatch && request.method === "GET") {
@@ -573,6 +587,26 @@ export default {
       return json({ ok: true });
     }
 
+    if (url.pathname === "/api/leads" && request.method === "GET") {
+      var rLeads = await env.DB.prepare("SELECT * FROM email_leads ORDER BY last_seen_at DESC LIMIT 1000").all();
+      return json(rLeads.results);
+    }
+
+    if (url.pathname === "/api/leads/events" && request.method === "GET") {
+      var eventsEmail = (url.searchParams.get("email") || "").trim().toLowerCase();
+      if (!eventsEmail) {
+        return json({ error: "EMAIL_REQUIRED" }, 400);
+      }
+      var rEvents = await env.DB.prepare("SELECT * FROM lead_events WHERE email = ? ORDER BY created_at DESC LIMIT 300").bind(eventsEmail).all();
+      return json(rEvents.results);
+    }
+
+    var leadIdMatch = url.pathname.match(/^\/api\/leads\/(\d+)$/);
+    if (leadIdMatch && request.method === "DELETE") {
+      await env.DB.prepare("DELETE FROM email_leads WHERE id=?").bind(leadIdMatch[1]).run();
+      return json({ ok: true });
+    }
+
     if (url.pathname === "/api/settings" && request.method === "GET") {
       var r8 = await env.DB.prepare("SELECT * FROM settings").all();
       return json(r8.results);
@@ -680,6 +714,7 @@ function getDashboardHtml() {
 '<button class="tab" onclick="showTab(\'tutorials\',this)">Tutorials</button>' +
 '<button class="tab" onclick="showTab(\'plans\',this)">Plans</button>' +
 '<button class="tab" onclick="showTab(\'orders\',this)">Orders</button>' +
+'<button class="tab" onclick="showTab(\'leads\',this)">Leads</button>' +
 '<button class="tab" onclick="showTab(\'settings\',this)">Settings</button>' +
 '</div>' +
 '<div class="panel active" id="panel-mockups">' +
@@ -706,6 +741,10 @@ function getDashboardHtml() {
 '</div>' +
 '<div class="panel" id="panel-orders">' +
 '<table><thead><tr><th>Order ID</th><th>Email</th><th>Mockup</th><th>Amount</th><th>Currency</th><th>Status</th><th>Date</th></tr></thead><tbody id="ordersTableBody"></tbody></table>' +
+'</div>' +
+'<div class="panel" id="panel-leads">' +
+'<div class="toolbar"><span id="leadCount" style="font-size:.85rem;color:rgba(255,255,255,.4)"></span><button class="btn" onclick="exportLeadsCsv()">Export CSV</button></div>' +
+'<table><thead><tr><th>Email</th><th>Last Action</th><th>Detail</th><th>Last Action At</th><th>First Seen</th><th>Last Seen</th><th>Actions</th></tr></thead><tbody id="leadsTableBody"></tbody></table>' +
 '</div>' +
 '<div class="panel" id="panel-settings"><div id="settingsList"></div></div>' +
 '</div>' +
@@ -793,6 +832,12 @@ function getDashboardHtml() {
 '<div class="form-row form-row-inline"><input type="checkbox" id="pFieldActive" checked><label>Visible on site</label></div>' +
 '<div class="modal-actions"><button class="btn" onclick="closePlanForm()">Cancel</button><button class="btn btn-primary" onclick="savePlan()">Save Plan</button></div>' +
 '</div></div>' +
+'<div class="modal-overlay" id="leadEventsModalOverlay">' +
+'<div class="modal">' +
+'<h3>Activity — <span id="leadEventsEmail"></span></h3>' +
+'<table><thead><tr><th>Action</th><th>Detail</th><th>Date</th></tr></thead><tbody id="leadEventsTableBody"></tbody></table>' +
+'<div class="modal-actions"><button class="btn" onclick="closeLeadEventsModal()">Close</button></div>' +
+'</div></div>' +
 '<script>' +
 'var categories=[];' +
 'function doLogin(){' +
@@ -802,7 +847,7 @@ function getDashboardHtml() {
 'if(d.ok){document.getElementById("loginScreen").style.display="none";document.getElementById("dashboard").style.display="block";loadAll();}' +
 'else{document.getElementById("loginError").style.display="block";}' +
 '});}' +
-'function loadAll(){loadMockups();loadCategories();loadTutorials();loadPlans();loadOrders();loadSettings();}' +
+'function loadAll(){loadMockups();loadCategories();loadTutorials();loadPlans();loadOrders();loadLeads();loadSettings();}' +
 'function showTab(name,btn){' +
 'document.querySelectorAll(".tab").forEach(function(t){t.classList.remove("active");});' +
 'document.querySelectorAll(".panel").forEach(function(p){p.classList.remove("active");});' +
@@ -817,7 +862,7 @@ function getDashboardHtml() {
 '"<img class=\'thumb-img\' src=\'"+m.image_url+"\' onerror=\'this.style.display=\\\"none\\\"\' loading=\'lazy\'>"' +
 ':"<div class=\'thumb-empty\'>&#128247;</div>";' +
 'return "<tr><td>"+thumb+"</td><td><strong>"+esc(m.name_en)+"</strong><div style=\'font-size:.75rem;color:rgba(255,255,255,.4);margin-top:2px\'>"+esc(m.name_fa||"")+"</div></td>"' +
-'+"<td>"+esc(m.category||"&#8212;")+"</td>"' +
+'+"<td>"+(m.category?esc(m.category):"&#8212;")+"</td>"' +
 '+"<td>"+(m.is_free?"<span class=\'badge free\'>Free</span>":"<span class=\'badge paid\'>$"+m.price+"</span>")+"</td>"' +
 '+"<td><span class=\'badge "+(m.is_active?"yes":"no")+"\'>"+(m.is_active?"Yes":"No")+"</span></td>"' +
 '+"<td style=\'white-space:nowrap\'><button class=\'btn btn-edit btn-sm\' onclick=\'editMockup("+JSON.stringify(m)+")\'>Edit</button> <button class=\'btn btn-danger btn-sm\' onclick=\'deleteMockup("+m.id+")\'>Del</button></td></tr>";' +
@@ -961,8 +1006,8 @@ function getDashboardHtml() {
 '"<img class=\'thumb-img\' src=\'"+t.image_url+"\' onerror=\'this.style.display=\\\"none\\\"\' loading=\'lazy\'>"' +
 ':"<div class=\'thumb-empty\'>&#128218;</div>";' +
 'return "<tr><td>"+thumb+"</td><td><strong>"+esc(t.title_en)+"</strong><div style=\'font-size:.75rem;color:rgba(255,255,255,.4);margin-top:2px\'>"+esc(t.title_fa||"")+"</div></td>"' +
-'+"<td>"+esc(t.level||"&#8212;")+"</td>"' +
-'+"<td>"+esc(t.type||"&#8212;")+"</td>"' +
+'+"<td>"+(t.level?esc(t.level):"&#8212;")+"</td>"' +
+'+"<td>"+(t.type?esc(t.type):"&#8212;")+"</td>"' +
 '+"<td>"+(t.order_index||0)+"</td>"' +
 '+"<td><span class=\'badge "+(t.is_active?"yes":"no")+"\'>"+(t.is_active?"Yes":"No")+"</span></td>"' +
 '+"<td style=\'white-space:nowrap\'><button class=\'btn btn-edit btn-sm\' onclick=\'editTutorial("+JSON.stringify(t)+")\'>Edit</button> <button class=\'btn btn-danger btn-sm\' onclick=\'deleteTutorial("+t.id+")\'>Del</button></td></tr>";' +
@@ -1038,7 +1083,7 @@ function getDashboardHtml() {
 'document.getElementById("planCount").textContent=data.length+" plans";' +
 'if(!data.length){tbody.innerHTML="<tr class=\'empty-row\'><td colspan=\'8\'>No plans yet.</td></tr>";return;}' +
 'tbody.innerHTML=data.map(function(p){' +
-'return "<tr><td>"+esc(p.tag_en||"&#8212;")+"</td><td><strong>"+esc(p.name)+"</strong></td><td>$"+(p.price||0)+"</td>"' +
+'return "<tr><td>"+(p.tag_en?esc(p.tag_en):"&#8212;")+"</td><td><strong>"+esc(p.name)+"</strong></td><td>$"+(p.price||0)+"</td>"' +
 '+"<td><span class=\'badge "+(p.is_best?"yes":"no")+"\'>"+(p.is_best?"Yes":"No")+"</span></td>"' +
 '+"<td><span class=\'badge "+(p.is_disabled?"no":"yes")+"\'>"+(p.is_disabled?"Disabled":"Enabled")+"</span></td>"' +
 '+"<td>"+(p.order_index||0)+"</td>"' +
@@ -1112,7 +1157,39 @@ function getDashboardHtml() {
 'fetch("/api/orders",{credentials:"include"}).then(function(r){return r.json();}).then(function(data){' +
 'var tbody=document.getElementById("ordersTableBody");' +
 'if(!data.length){tbody.innerHTML="<tr class=\'empty-row\'><td colspan=\'7\'>No orders yet.</td></tr>";return;}' +
-'tbody.innerHTML=data.map(function(o){return "<tr><td style=\'font-family:monospace;font-size:.75rem\'>"+esc(o.order_id||"")+"</td><td>"+esc(o.customer_email||"&#8212;")+"</td><td>"+esc(o.mockup_name||"&#8212;")+"</td><td>$"+(o.amount_usd||0)+"</td><td>"+esc(o.pay_currency||"&#8212;")+"</td><td><span class=\'badge status-"+(o.status||"")+"\'>"+(o.status||"&#8212;")+"</span></td><td style=\'font-size:.75rem\'>"+esc(o.created_at||"")+"</td></tr>";}).join("");});' +
+'tbody.innerHTML=data.map(function(o){return "<tr><td style=\'font-family:monospace;font-size:.75rem\'>"+esc(o.order_id||"")+"</td><td>"+(o.customer_email?esc(o.customer_email):"&#8212;")+"</td><td>"+(o.mockup_name?esc(o.mockup_name):"&#8212;")+"</td><td>$"+(o.amount_usd||0)+"</td><td>"+(o.pay_currency?esc(o.pay_currency):"&#8212;")+"</td><td><span class=\'badge status-"+(o.status||"")+"\'>"+(o.status||"&#8212;")+"</span></td><td style=\'font-size:.75rem\'>"+esc(o.created_at||"")+"</td></tr>";}).join("");});' +
+'}' +
+'function loadLeads(){' +
+'fetch("/api/leads",{credentials:"include"}).then(function(r){return r.json();}).then(function(data){' +
+'window.__leadsCache=data;' +
+'var tbody=document.getElementById("leadsTableBody");' +
+'document.getElementById("leadCount").textContent=data.length+" leads";' +
+'if(!data.length){tbody.innerHTML="<tr class=\'empty-row\'><td colspan=\'7\'>No leads yet.</td></tr>";return;}' +
+'tbody.innerHTML=data.map(function(l){return "<tr><td>"+esc(l.email||"")+"</td><td>"+(l.last_action?esc(l.last_action):"&#8212;")+"</td><td>"+(l.last_action_detail?esc(l.last_action_detail):"&#8212;")+"</td><td style=\'font-size:.75rem\'>"+(l.last_action_at?esc(l.last_action_at):"&#8212;")+"</td><td style=\'font-size:.75rem\'>"+esc(l.created_at||"")+"</td><td style=\'font-size:.75rem\'>"+esc(l.last_seen_at||"")+"</td><td style=\'white-space:nowrap\'><button class=\'btn btn-edit btn-sm\' data-lead-email=\'"+esc(l.email)+"\' onclick=\'viewLeadEvents(this.dataset.leadEmail)\'>Activity</button> <button class=\'btn btn-danger btn-sm\' onclick=\'deleteLead("+l.id+")\'>Del</button></td></tr>";}).join("");});' +
+'}' +
+'function deleteLead(id){if(!confirm("Delete this lead?"))return;fetch("/api/leads/"+id,{method:"DELETE",credentials:"include"}).then(loadLeads);}' +
+'function viewLeadEvents(email){' +
+'document.getElementById("leadEventsEmail").textContent=email;' +
+'document.getElementById("leadEventsModalOverlay").classList.add("open");' +
+'document.getElementById("leadEventsTableBody").innerHTML="<tr class=\'empty-row\'><td colspan=\'3\'>Loading...</td></tr>";' +
+'fetch("/api/leads/events?email="+encodeURIComponent(email),{credentials:"include"}).then(function(r){return r.json();}).then(function(data){' +
+'var tbody=document.getElementById("leadEventsTableBody");' +
+'if(!data.length){tbody.innerHTML="<tr class=\'empty-row\'><td colspan=\'3\'>No activity recorded yet.</td></tr>";return;}' +
+'tbody.innerHTML=data.map(function(ev){return "<tr><td>"+(ev.action?esc(ev.action):"&#8212;")+"</td><td>"+(ev.detail?esc(ev.detail):"&#8212;")+"</td><td style=\'font-size:.75rem\'>"+esc(ev.created_at||"")+"</td></tr>";}).join("");' +
+'});' +
+'}' +
+'function closeLeadEventsModal(){document.getElementById("leadEventsModalOverlay").classList.remove("open");}' +
+'function exportLeadsCsv(){' +
+'var data=window.__leadsCache||[];' +
+'if(!data.length){alert("No leads to export.");return;}' +
+'var rows=[["email","last_action","last_action_detail","last_action_at","created_at","last_seen_at"]];' +
+'data.forEach(function(l){rows.push([l.email||"",l.last_action||"",l.last_action_detail||"",l.last_action_at||"",l.created_at||"",l.last_seen_at||""]);});' +
+'var csv=rows.map(function(r){return r.map(function(v){return "\\""+String(v).replace(/"/g,"\\"\\"")+"\\"";}).join(",");}).join("\\n");' +
+'var blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});' +
+'var link=document.createElement("a");' +
+'link.href=URL.createObjectURL(blob);' +
+'link.download="cafemockup-leads.csv";' +
+'link.click();' +
 '}' +
 'function loadSettings(){' +
 'fetch("/api/settings",{credentials:"include"}).then(function(r){return r.json();}).then(function(data){' +
