@@ -4,6 +4,9 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
+// Emails in this list get unlimited Upscaler access — no free-use limit, no subscription check.
+var ADMIN_BYPASS_EMAILS = ["aidin.ghm@gmail.com"];
+
 function json(data, status, extraHeaders) {
   if (status === undefined) status = 200;
   if (extraHeaders === undefined) extraHeaders = {};
@@ -215,26 +218,33 @@ export default {
           return json({ error: "INVALID_FILE_TYPE" }, 400);
         }
 
+        // Admin bypass: whitelisted emails skip free-use and subscription checks entirely
+        var isAdminBypass = ADMIN_BYPASS_EMAILS.indexOf(String(upEmail).toLowerCase()) !== -1;
+
         // Monthly upscale credit limits per plan (edit here if pricing changes)
         var UPSCALE_MONTHLY_LIMITS = { monthly: 40, yearly: 50 };
 
-        var freeUseRow = await env.DB.prepare("SELECT COUNT(*) AS cnt FROM upscale_usage WHERE email = ? AND is_free_use = 1").bind(upEmail).first();
-        var hasFreeUse = !freeUseRow || freeUseRow.cnt === 0;
-        var isThisUseFree = hasFreeUse;
+        var isThisUseFree = false;
 
-        if (!hasFreeUse) {
-          var subRow = await env.DB.prepare("SELECT plan_key, expires_at FROM subscriptions WHERE email = ?").bind(upEmail).first();
-          var isSubscribed = subRow && new Date(subRow.expires_at) > new Date();
-          if (!isSubscribed) {
-            return json({ error: "PAYMENT_REQUIRED" }, 402);
-          }
-          var monthlyLimit = UPSCALE_MONTHLY_LIMITS[subRow.plan_key] || 0;
-          var usedThisMonthRow = await env.DB.prepare(
-            "SELECT COUNT(*) AS cnt FROM upscale_usage WHERE email = ? AND is_free_use = 0 AND strftime('%Y-%m', used_at) = strftime('%Y-%m','now')"
-          ).bind(upEmail).first();
-          var usedThisMonth = usedThisMonthRow ? usedThisMonthRow.cnt : 0;
-          if (usedThisMonth >= monthlyLimit) {
-            return json({ error: "MONTHLY_LIMIT_REACHED", limit: monthlyLimit, used: usedThisMonth }, 402);
+        if (!isAdminBypass) {
+          var freeUseRow = await env.DB.prepare("SELECT COUNT(*) AS cnt FROM upscale_usage WHERE email = ? AND is_free_use = 1").bind(upEmail).first();
+          var hasFreeUse = !freeUseRow || freeUseRow.cnt === 0;
+          isThisUseFree = hasFreeUse;
+
+          if (!hasFreeUse) {
+            var subRow = await env.DB.prepare("SELECT plan_key, expires_at FROM subscriptions WHERE email = ?").bind(upEmail).first();
+            var isSubscribed = subRow && new Date(subRow.expires_at) > new Date();
+            if (!isSubscribed) {
+              return json({ error: "PAYMENT_REQUIRED" }, 402);
+            }
+            var monthlyLimit = UPSCALE_MONTHLY_LIMITS[subRow.plan_key] || 0;
+            var usedThisMonthRow = await env.DB.prepare(
+              "SELECT COUNT(*) AS cnt FROM upscale_usage WHERE email = ? AND is_free_use = 0 AND strftime('%Y-%m', used_at) = strftime('%Y-%m','now')"
+            ).bind(upEmail).first();
+            var usedThisMonth = usedThisMonthRow ? usedThisMonthRow.cnt : 0;
+            if (usedThisMonth >= monthlyLimit) {
+              return json({ error: "MONTHLY_LIMIT_REACHED", limit: monthlyLimit, used: usedThisMonth }, 402);
+            }
           }
         }
 
@@ -277,7 +287,7 @@ export default {
 
         await env.DB.prepare(
           "INSERT INTO upscale_usage (email, is_free_use, used_at) VALUES (?, ?, datetime('now'))"
-        ).bind(upEmail, isThisUseFree ? 1 : 0).run();
+        ).bind(upEmail, isAdminBypass ? 1 : (isThisUseFree ? 1 : 0)).run();
 
         var outHeaders = new Headers();
         outHeaders.set("Content-Type", resultMime);
