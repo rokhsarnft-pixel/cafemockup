@@ -707,15 +707,6 @@ body.ltr .search-bar .search-go{order:2;margin-left:4px;margin-right:0;}
     <span data-fa="پرداخت با Bitcoin · Ethereum · USDT — پردازش توسط NowPayments" data-en="Pay with Bitcoin · Ethereum · USDT — Powered by NowPayments">Pay with Bitcoin · Ethereum · USDT — Powered by NowPayments</span>
   </div>
 
-  <div class="coming-soon-wrap">
-    <div class="coming-soon-icon"><i class="ti ti-clock-hour-4"></i></div>
-    <h3 data-fa="پلن‌های اشتراک به‌زودی فعال می‌شوند" data-en="Subscription Plans Coming Soon">Subscription Plans Coming Soon</h3>
-    <p data-fa="در حال حاضر می‌توانید موکاپ‌ها را به‌صورت تکی از گالری خریداری کنید. پلن‌های اشتراک ماهانه به‌زودی اضافه خواهند شد." data-en="For now, you can purchase mockups individually from the gallery. Monthly subscription plans will be added soon.">For now, you can purchase mockups individually from the gallery. Monthly subscription plans will be added soon.</p>
-    <button class="btn-gold" onclick="goPage('home',document.querySelectorAll('.nav-tab')[0])">
-      <span data-fa="مشاهده موکاپ‌ها" data-en="Browse Mockups">Browse Mockups</span>
-    </button>
-  </div>
-
   <div class="plans" id="plansGrid"></div>
 </div>
 
@@ -784,11 +775,11 @@ body.ltr .search-bar .search-go{order:2;margin-left:4px;margin-right:0;}
       <!-- STEP 3: success -->
       <div class="pay-inner" id="payStepSuccess" style="display:none;text-align:center;">
         <div class="pay-success-icon"><i class="ti ti-circle-check"></i></div>
-        <div class="pay-success-title" data-fa="پرداخت با موفقیت تأیید شد!" data-en="Payment confirmed!">Payment confirmed!</div>
-        <p class="pay-success-sub" data-fa="فایل شما آماده است." data-en="Your file is ready.">Your file is ready.</p>
-        <button class="btn-gold" id="payDownloadBtn" style="margin-top:1rem;width:100%;" onclick="if(pendingDownloadUrl) triggerFileDownload(pendingDownloadUrl)">
-          <i class="ti ti-download"></i>
-          <span data-fa="دانلود فایل" data-en="Download File">Download File</span>
+        <div class="pay-success-title" data-fa="اشتراک شما فعال شد!" data-en="Subscription activated!">Subscription activated!</div>
+        <p class="pay-success-sub" data-fa="حالا می‌توانید همه موکاپ‌های پولی را دانلود کنید." data-en="You can now download all paid mockups.">You can now download all paid mockups.</p>
+        <button class="btn-gold" id="payDownloadBtn" style="margin-top:1rem;width:100%;" onclick="goPage('home',document.querySelectorAll('.nav-tab')[0])">
+          <i class="ti ti-arrow-left"></i>
+          <span data-fa="مشاهده موکاپ‌ها" data-en="Browse Mockups">Browse Mockups</span>
         </button>
       </div>
     </div>
@@ -1428,24 +1419,48 @@ async function loadPlansFromDatabase(){
   renderPlans();
 }
 
+const planRegistry = {};
 function renderPlans(){
   const grid = document.getElementById('plansGrid');
   if(!grid) return;
   grid.innerHTML = plans.map(function(p){
+    const planKey = (p.id !== undefined && p.id !== null) ? String(p.id) : p.name;
+    planRegistry[planKey] = p;
     const featuresHtml = p.features.map(function(f){
       return '<li><i class="ti ti-check"></i><span>' + (lang==='fa' ? f.fa : f.en) + '</span></li>';
     }).join('');
     const btnClass = p.is_best ? 'plan-btn-solid' : 'plan-btn-outline';
     const btnLabel = lang==='fa' ? p.button_label_fa : p.button_label_en;
-    const disabledAttr = p.is_disabled ? 'disabled' : '';
+    const canSubscribe = !p.is_disabled && p.price > 0;
+    const disabledAttr = canSubscribe ? '' : 'disabled';
+    const onclickAttr = canSubscribe ? ' onclick="handleSubscribe(\'' + planKey.replace(/'/g,"\\'") + '\')"' : '';
     return '<div class="plan' + (p.is_best ? ' best' : '') + '">' +
       '<div class="plan-tag"><i class="ti ' + p.tag_icon + '"></i><span>' + (lang==='fa' ? p.tag_fa : p.tag_en) + '</span></div>' +
       '<div class="plan-name">' + p.name + '</div>' +
       '<div class="plan-price"><sup>$</sup>' + p.price + '<sub>' + (lang==='fa' ? p.period_fa : p.period_en) + '</sub></div>' +
       '<ul class="plan-ul">' + featuresHtml + '</ul>' +
-      '<button class="' + btnClass + '" ' + disabledAttr + '>' + btnLabel + '</button>' +
+      '<button class="' + btnClass + '" ' + disabledAttr + onclickAttr + '>' + btnLabel + '</button>' +
       '</div>';
   }).join('');
+}
+
+// Starts the crypto payment flow for a subscription plan. Builds a special order_id
+// (sub_monthly_{email}_{timestamp} or sub_yearly_{email}_{timestamp}) that the webhook
+// on admin-worker-final.js recognizes and uses to activate/extend the subscription.
+function handleSubscribe(planKey){
+  const plan = planRegistry[planKey];
+  if(!plan) return;
+  requireEmail(function(email){
+    const periodText = (plan.period_en || '').toLowerCase();
+    const isYearly = periodText.indexOf('yr') !== -1 || periodText.indexOf('year') !== -1;
+    const subPlanType = isYearly ? 'yearly' : 'monthly';
+    currentOrderId = 'sub_' + subPlanType + '_' + encodeURIComponent(email) + '_' + Date.now();
+    pendingDownloadUrl = null;
+    if (paymentPollInterval) clearInterval(paymentPollInterval);
+    clearPendingPayment();
+    setPaymentOrder(plan.price, plan.name + ' — ' + (lang==='fa' ? plan.period_fa : plan.period_en));
+    goPage('payment', null);
+  }, 'subscribe', plan.name);
 }
 // Registry so any rendered mockup card (from gallery, search, or home) can be looked up by name for the detail page
 const mockupRegistry = {};
@@ -1469,7 +1484,7 @@ function renderMockups(items,containerId){
       </div>
       <div class="m-body"><h4>${lang==='fa'?m.fa:m.en}</h4><p>${m.cat}</p></div>
       <div class="m-foot">
-        <span class="m-price">${m.price}</span>
+        <span class="m-price">${m.free ? m.price : (lang==='fa'?'با اشتراک':'With Subscription')}</span>
         <span class="m-btn" style="pointer-events:none;">
           <i class="ti ti-arrow-left"></i>
           ${lang==='fa'?'مشاهده':'View'}
@@ -1541,16 +1556,14 @@ function openMockupDetail(key, skipHistory){
 
   const priceBlock = m.free
     ? `<span class="md-free-tag">${lang==='fa'?'رایگان':'Free'}</span>`
-    : `<span class="md-price">${m.price}</span>`;
+    : `<span class="md-free-tag" style="background:rgba(46,115,214,.12);color:var(--blue1);">${lang==='fa'?'با اشتراک':'With Subscription'}</span>`;
 
-  const buyBtnLabel = m.free
-    ? (lang==='fa'?'دانلود رایگان':'Free Download')
-    : (lang==='fa'?'دانلود':'Download');
-  const buyBtnSub = m.free ? '' : (lang==='fa'?'خرید با کریپتو':'Buy with Crypto');
-  const buyBtnIcon = m.free ? 'ti-download' : 'ti-currency-bitcoin';
+  const buyBtnLabel = lang==='fa'?'دانلود':'Download';
+  const buyBtnSub = m.free ? '' : (lang==='fa'?'نیاز به اشتراک فعال':'Requires active subscription');
+  const buyBtnIcon = 'ti-download';
   const buyAction = m.free
     ? `handleFreeDownload('${m.downloadUrl||''}','${(lang==='fa'?m.fa:m.en).replace(/'/g,"\\'")}')`
-    : `handleBuyMockup('${m.price.replace('$','')}','${(lang==='fa'?m.fa:m.en).replace(/'/g,"\\'")}','${m.downloadUrl||''}')`;
+    : `checkSubscriptionAndDownload('${key}')`;
 
   const thumbsHtml = allImages.length > 1
     ? `<div class="md-thumbs">${allImages.map(function(src, i){
@@ -1761,6 +1774,30 @@ function handleFreeDownload(url, name){
     return;
   }
   requireEmail(() => triggerFileDownload(url), 'free_download', name || '');
+}
+
+// Gates a paid mockup's download behind an active subscription (replaces the old
+// per-mockup crypto purchase flow — individual mockup purchases are no longer sold).
+function checkSubscriptionAndDownload(key){
+  const m = mockupRegistry[key];
+  if(!m) return;
+  requireEmail(function(email){
+    fetch(ADMIN_API_URL + '/api/public/subscription-status?email=' + encodeURIComponent(email))
+      .then(function(res){ return res.json(); })
+      .then(function(data){
+        if(data && data.active){
+          triggerFileDownload(m.downloadUrl);
+        } else {
+          alert(lang==='fa'
+            ? 'برای دانلود این موکاپ باید مشترک باشید. به صفحه پلن‌ها منتقل می‌شوید.'
+            : 'You need an active subscription to download this mockup. Redirecting to Pricing.');
+          goPage('pricing', document.querySelectorAll('.nav-tab')[1]);
+        }
+      })
+      .catch(function(){
+        alert(lang==='fa' ? 'خطا در بررسی اشتراک. لطفاً دوباره تلاش کنید.' : 'Error checking subscription. Please try again.');
+      });
+  }, 'check_subscription_download', (lang==='fa'?m.fa:m.en));
 }
 
 function handleBuyMockup(price, name, downloadUrl){
@@ -1983,6 +2020,7 @@ const PAYMENT_WORKER_URL = 'https://cafemockup-payment.rokhsar-nft.workers.dev';
 // The amount for the currently selected item (plan or mockup). Default: Pro Espresso plan.
 let currentOrderAmount = 25;
 let currentOrderDescription = 'Pro Espresso Plan - 1 Month';
+let currentOrderId = null;
 let paymentPollInterval = null;
 let pendingDownloadUrl = null;
 
@@ -2068,7 +2106,7 @@ async function startPayment() {
       body: JSON.stringify({
         price_amount: currentOrderAmount,
         pay_currency: selectedCurrency,
-        order_id: 'mockupcafe_' + Date.now(),
+        order_id: currentOrderId || ('mockupcafe_' + Date.now()),
         order_description: currentOrderDescription,
       }),
     });
