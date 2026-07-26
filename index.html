@@ -2275,8 +2275,8 @@ function loadScriptOnce(src){
 
 function ensureUpscalerLoaded(){
   if(upscalerLibReady) return upscalerLibReady;
-  upscalerLibReady = loadScriptOnce('https://cdn.jsdelivr.net/npm/@upscalerjs/esrgan-slim@latest/dist/umd/2x.min.js')
-    .then(function(){ return loadScriptOnce('https://cdn.jsdelivr.net/npm/@upscalerjs/esrgan-slim@latest/dist/umd/4x.min.js'); })
+  upscalerLibReady = loadScriptOnce('https://cdn.jsdelivr.net/npm/@upscalerjs/esrgan-slim@1.0.0/dist/umd/2x.min.js')
+    .then(function(){ return loadScriptOnce('https://cdn.jsdelivr.net/npm/@upscalerjs/esrgan-slim@1.0.0/dist/umd/4x.min.js'); })
     .then(function(){ return loadScriptOnce('https://cdn.jsdelivr.net/npm/upscaler@latest/dist/browser/umd/upscaler.min.js'); })
     .then(function(){
       upscalerModelInstances.x2 = new Upscaler({ model: ESRGANSlim2x });
