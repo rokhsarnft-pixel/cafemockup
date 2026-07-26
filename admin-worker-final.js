@@ -196,30 +196,19 @@ export default {
       }
     }
 
-    // ── UPSCALER (no admin auth needed — used by regular site visitors) ──
-    if (url.pathname === "/api/upscale" && request.method === "POST") {
+    // ── UPSCALE ACCESS CHECK (no admin auth needed) ──
+    // Actual image processing now happens client-side in the browser (UpscalerJS/Real-ESRGAN).
+    // This endpoint only decides whether the given email is allowed to upscale right now,
+    // using the exact same free-use / subscription / admin-bypass rules as before.
+    if (url.pathname === "/api/public/upscale-check" && request.method === "GET") {
       try {
-        var formData = await request.formData();
-        var upEmail = formData.get("email");
-        var multiplier = parseInt(formData.get("multiplier"), 10) || 2;
-        var file = formData.get("image");
-
-        if (!upEmail) {
+        var checkEmail = url.searchParams.get("email");
+        if (!checkEmail) {
           return json({ error: "EMAIL_REQUIRED" }, 400);
-        }
-        if (!file) {
-          return json({ error: "NO_FILE" }, 400);
-        }
-        if (file.size > 20 * 1024 * 1024) {
-          return json({ error: "FILE_TOO_LARGE" }, 400);
-        }
-        var allowedTypes = ["image/jpeg", "image/png", "image/webp"];
-        if (allowedTypes.indexOf(file.type) === -1) {
-          return json({ error: "INVALID_FILE_TYPE" }, 400);
         }
 
         // Admin bypass: whitelisted emails skip free-use and subscription checks entirely
-        var isAdminBypass = ADMIN_BYPASS_EMAILS.indexOf(String(upEmail).toLowerCase()) !== -1;
+        var isAdminBypass = ADMIN_BYPASS_EMAILS.indexOf(String(checkEmail).toLowerCase()) !== -1;
 
         // Monthly upscale credit limits per plan (edit here if pricing changes)
         var UPSCALE_MONTHLY_LIMITS = { monthly: 40, yearly: 50 };
@@ -227,12 +216,12 @@ export default {
         var isThisUseFree = false;
 
         if (!isAdminBypass) {
-          var freeUseRow = await env.DB.prepare("SELECT COUNT(*) AS cnt FROM upscale_usage WHERE email = ? AND is_free_use = 1").bind(upEmail).first();
+          var freeUseRow = await env.DB.prepare("SELECT COUNT(*) AS cnt FROM upscale_usage WHERE email = ? AND is_free_use = 1").bind(checkEmail).first();
           var hasFreeUse = !freeUseRow || freeUseRow.cnt === 0;
           isThisUseFree = hasFreeUse;
 
           if (!hasFreeUse) {
-            var subRow = await env.DB.prepare("SELECT plan_key, expires_at FROM subscriptions WHERE email = ?").bind(upEmail).first();
+            var subRow = await env.DB.prepare("SELECT plan_key, expires_at FROM subscriptions WHERE email = ?").bind(checkEmail).first();
             var isSubscribed = subRow && new Date(subRow.expires_at) > new Date();
             if (!isSubscribed) {
               return json({ error: "PAYMENT_REQUIRED" }, 402);
@@ -240,7 +229,7 @@ export default {
             var monthlyLimit = UPSCALE_MONTHLY_LIMITS[subRow.plan_key] || 0;
             var usedThisMonthRow = await env.DB.prepare(
               "SELECT COUNT(*) AS cnt FROM upscale_usage WHERE email = ? AND is_free_use = 0 AND strftime('%Y-%m', used_at) = strftime('%Y-%m','now')"
-            ).bind(upEmail).first();
+            ).bind(checkEmail).first();
             var usedThisMonth = usedThisMonthRow ? usedThisMonthRow.cnt : 0;
             if (usedThisMonth >= monthlyLimit) {
               return json({ error: "MONTHLY_LIMIT_REACHED", limit: monthlyLimit, used: usedThisMonth }, 402);
@@ -248,54 +237,14 @@ export default {
           }
         }
 
-        var fileBuffer = await file.arrayBuffer();
-        var infoStream = new Response(fileBuffer).body;
-        var info = await env.IMAGES.info(infoStream);
-        var origWidth = info.width;
-        var origHeight = info.height;
-
-        var targetWidth = origWidth * multiplier;
-        var targetHeight = origHeight * multiplier;
-        var maxPixels = 8000000;
-        if (targetWidth * targetHeight > maxPixels) {
-          var scaleDown = Math.sqrt(maxPixels / (targetWidth * targetHeight));
-          targetWidth = Math.round(targetWidth * scaleDown);
-          targetHeight = Math.round(targetHeight * scaleDown);
-        }
-        var targetMegapixels = Math.min(128, Math.max(1, Math.round((targetWidth * targetHeight) / 1000000)));
-
-        var base64Image = bufferToBase64(fileBuffer);
-        var dataUri = "data:" + file.type + ";base64," + base64Image;
-
-        var aiResult = await env.AI.run("pruna/p-image-upscale", {
-          image: dataUri,
-          target: targetMegapixels,
-          enhance_details: true,
-          output_format: "jpg",
-        });
-
-        if (!aiResult || !aiResult.result || !aiResult.result.image) {
-          throw new Error("Upscale model returned no image");
-        }
-
-        var resultDataUri = aiResult.result.image;
-        var commaIdx = resultDataUri.indexOf(",");
-        var semiIdx = resultDataUri.indexOf(";");
-        var resultMime = resultDataUri.substring(5, semiIdx) || "image/jpeg";
-        var resultBase64 = resultDataUri.substring(commaIdx + 1);
-        var outputBuffer = base64ToArrayBuffer(resultBase64);
-
         await env.DB.prepare(
           "INSERT INTO upscale_usage (email, is_free_use, used_at) VALUES (?, ?, datetime('now'))"
-        ).bind(upEmail, isAdminBypass ? 1 : (isThisUseFree ? 1 : 0)).run();
+        ).bind(checkEmail, isAdminBypass ? 1 : (isThisUseFree ? 1 : 0)).run();
 
-        var outHeaders = new Headers();
-        outHeaders.set("Content-Type", resultMime);
-        outHeaders.set("Access-Control-Allow-Origin", "*");
-        return new Response(outputBuffer, { status: 200, headers: outHeaders });
+        return json({ allowed: true });
       } catch (err) {
-        console.error("Upscale error:", err.message);
-        return json({ error: "UPSCALE_FAILED", details: err.message }, 500);
+        console.error("Upscale-check error:", err.message);
+        return json({ error: "CHECK_FAILED", details: err.message }, 500);
       }
     }
 
@@ -314,7 +263,7 @@ export default {
     }
 
     // ── PUBLIC ROUTES ──
-    var PUBLIC_ROUTES = ["/api/login", "/api/public/mockups", "/api/public/categories", "/api/public/tutorials", "/api/public/plans", "/api/webhook", "/api/upscale", "/api/public/subscription-status", "/api/public/lead"];
+    var PUBLIC_ROUTES = ["/api/login", "/api/public/mockups", "/api/public/categories", "/api/public/tutorials", "/api/public/plans", "/api/webhook", "/api/public/upscale-check", "/api/public/subscription-status", "/api/public/lead"];
     var isApiRoute = url.pathname.startsWith("/api/");
     var publicMockupItemMatch = url.pathname.match(/^\/api\/public\/mockup\/(\d+)$/);
     var publicTutorialItemMatch = url.pathname.match(/^\/api\/public\/tutorial\/(\d+)$/);
