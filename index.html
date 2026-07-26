@@ -612,6 +612,7 @@ body.ltr .search-bar .search-go{order:2;margin-left:4px;margin-right:0;}
   <button class="menu-overlay-link nav-tab" onclick="goPage('pricing',this);closeMobileMenu()" data-fa="پلن‌ها" data-en="Pricing">Pricing</button>
   <button class="menu-overlay-link nav-tab" onclick="goPage('tutorials',this);closeMobileMenu()" data-fa="آموزش" data-en="Tutorials">Tutorials</button>
   <button class="menu-overlay-link nav-tab" onclick="goPage('about',this);closeMobileMenu()" data-fa="درباره ما" data-en="About">About</button>
+  <button class="menu-overlay-link nav-tab" onclick="goPage('upscaler',this);closeMobileMenu()" data-fa="آپسکیلر" data-en="Upscaler">Upscaler</button>
   <button class="menu-overlay-link" onclick="toggleLangAccordion()">
     <span data-fa="زبان" data-en="Language">Language</span>
   </button>
@@ -848,6 +849,62 @@ body.ltr .search-bar .search-go{order:2;margin-left:4px;margin-right:0;}
 </div>
 </div>
 
+<!-- UPSCALER -->
+<div id="pg-upscaler" class="page">
+  <div class="upscaler-wrap">
+    <div class="upscaler-head">
+      <h2 data-fa="آپسکیلر تصویر" data-en="Image Upscaler">Image Upscaler</h2>
+      <p data-fa="کیفیت عکس خودت رو با هوش مصنوعی تا ۸ برابر افزایش بده" data-en="Boost your image quality up to 8x with AI">Boost your image quality up to 8x with AI</p>
+    </div>
+
+    <div class="upscaler-dropzone" id="upscalerDropzone" onclick="document.getElementById('upscalerFileInput').click()">
+      <input type="file" id="upscalerFileInput" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="handleUpscalerFileSelect(this.files[0])">
+      <i class="ti ti-cloud-upload"></i>
+      <p data-fa="برای انتخاب عکس کلیک کن (JPG، PNG یا WebP، حداکثر ۲۰ مگابایت)" data-en="Click to select an image (JPG, PNG or WebP, max 20MB)">Click to select an image (JPG, PNG or WebP, max 20MB)</p>
+    </div>
+
+    <div class="upscaler-controls" id="upscalerControls" style="display:none;">
+      <div class="upscaler-preview-row"><img id="upscalerOriginalPreview" alt="original"></div>
+      <div class="pay-lbl" data-fa="مقدار بزرگ‌نمایی" data-en="Upscale Amount">Upscale Amount</div>
+      <div class="upscaler-size-grid">
+        <div class="upscaler-size-opt sel" onclick="pickUpscaleSize(this,2)">2x</div>
+        <div class="upscaler-size-opt" onclick="pickUpscaleSize(this,4)">4x</div>
+        <div class="upscaler-size-opt" onclick="pickUpscaleSize(this,8)">8x</div>
+      </div>
+      <button class="pay-btn" id="upscalerRunBtn" onclick="runUpscale()">
+        <i class="ti ti-sparkles"></i>
+        <span data-fa="آپسکیل کن" data-en="Upscale Now">Upscale Now</span>
+      </button>
+      <div id="upscalerError" class="pay-error" style="display:none;"></div>
+    </div>
+
+    <div class="upscaler-result" id="upscalerResult" style="display:none;">
+      <div class="upscaler-compare">
+        <div class="upscaler-compare-col">
+          <span class="upscaler-compare-lbl" data-fa="قبل" data-en="Before">Before</span>
+          <img id="upscalerBeforeImg" alt="before" onclick="openUpscalerLightbox('before')">
+        </div>
+        <div class="upscaler-compare-col">
+          <span class="upscaler-compare-lbl" data-fa="بعد" data-en="After">After</span>
+          <img id="upscalerAfterImg" alt="after" onclick="openUpscalerLightbox('after')">
+        </div>
+      </div>
+      <button class="btn-gold" id="upscalerDownloadBtn" style="width:100%;margin-top:1rem;">
+        <i class="ti ti-download"></i>
+        <span data-fa="دانلود عکس نهایی" data-en="Download Result">Download Result</span>
+      </button>
+      <button class="pay-back-btn" onclick="resetUpscaler()">
+        <i class="ti ti-refresh"></i>
+        <span data-fa="عکس دیگری آپسکیل کن" data-en="Upscale Another Image">Upscale Another Image</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="upscaler-lightbox" id="upscalerLightbox" onclick="closeUpscalerLightbox()">
+  <button class="menu-overlay-close" onclick="closeUpscalerLightbox()" style="position:fixed;top:18px;right:24px;"><i class="ti ti-x"></i></button>
+  <img id="upscalerLightboxImg" alt="zoom">
+</div>
 <div id="emailModalOverlay" class="email-modal-overlay" style="display:none;" onclick="if(event.target===this) closeEmailModal()">
   <div class="email-modal">
     <button class="email-modal-close" onclick="closeEmailModal()"><i class="ti ti-x"></i></button>
@@ -1909,9 +1966,9 @@ function resolveRouteFromUrl(skipHistory){
   }
 
   const cleanPath = path.replace(/^\//,'') || 'home';
-  const validPages = ['home','pricing','tutorials','about','payment','lesson'];
+  const validPages = ['home','pricing','tutorials','about','payment','lesson','upscaler'];
   const pageId = validPages.includes(cleanPath) ? cleanPath : 'home';
-  const tabIndexMap = {pricing:1,tutorials:2,about:3};
+  const tabIndexMap = {pricing:1,tutorials:2,about:3,upscaler:4};
   const btn = tabIndexMap[pageId] !== undefined ? document.querySelectorAll('.nav-tab')[tabIndexMap[pageId]] : null;
   goPage(pageId, btn, true);
 }
@@ -2199,10 +2256,13 @@ function pickUpscaleSize(el, size){
   upscalerMultiplier = size;
 }
 
-// Lazily loads UpscalerJS + the Real-ESRGAN (esrgan-slim) 2x and 4x models from CDN,
-// only when the visitor actually uses the Upscaler — keeps every other page lightweight.
+// Loads our own self-hosted, self-converted Real-ESRGAN model (realesr-general-x4v3,
+// BSD-3-Clause weights, converted in-house to TensorFlow.js — no third-party npm wrapper,
+// no GPL code) on top of the stable, widely-used @tensorflow/tfjs core library.
+const UPSCALER_MODEL_URL = '/models/realesr-general-x4v3/model.json';
+const UPSCALER_MAX_INPUT_DIM = 1024; // caps processing size so mobile devices stay fast/stable
 let upscalerLibReady = null;
-const upscalerModelInstances = {};
+let upscalerModelInstance = null;
 
 function loadScriptOnce(src){
   return new Promise(function(resolve, reject){
@@ -2218,38 +2278,81 @@ function loadScriptOnce(src){
 
 function ensureUpscalerLoaded(){
   if(upscalerLibReady) return upscalerLibReady;
-  upscalerLibReady = loadScriptOnce('https://cdn.jsdelivr.net/npm/@upscalerjs/esrgan-slim@1.0.0/dist/umd/2x.min.js')
-    .then(function(){ return loadScriptOnce('https://cdn.jsdelivr.net/npm/@upscalerjs/esrgan-slim@1.0.0/dist/umd/4x.min.js'); })
-    .then(function(){ return loadScriptOnce('https://cdn.jsdelivr.net/npm/upscaler@latest/dist/browser/umd/upscaler.min.js'); })
-    .then(function(){
-      upscalerModelInstances.x2 = new Upscaler({ model: ESRGANSlim2x });
-      upscalerModelInstances.x4 = new Upscaler({ model: ESRGANSlim4x });
-    });
+  upscalerLibReady = loadScriptOnce('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js')
+    .then(function(){ return tf.loadGraphModel(UPSCALER_MODEL_URL); })
+    .then(function(model){ upscalerModelInstance = model; });
   return upscalerLibReady;
 }
 
-// Runs the real Real-ESRGAN neural network on-device. 8x is done by chaining
-// the 4x model into the 2x model (4 * 2 = 8), since browser builds only ship 2x/3x/4x.
-function runClientUpscale(imgEl, multiplier){
-  return ensureUpscalerLoaded().then(function(){
-    if(multiplier === 2){
-      return upscalerModelInstances.x2.upscale(imgEl);
-    }
-    if(multiplier === 4){
-      return upscalerModelInstances.x4.upscale(imgEl);
-    }
-    return upscalerModelInstances.x4.upscale(imgEl).then(function(midSrc){
-      return new Promise(function(resolve, reject){
-        const midImg = new Image();
-        midImg.onload = function(){
-          upscalerModelInstances.x2.upscale(midImg).then(resolve).catch(reject);
-        };
-        midImg.onerror = reject;
-        midImg.src = midSrc;
-      });
-    });
+function upscalerCapInputSize(imgEl){
+  const w = imgEl.naturalWidth || imgEl.width;
+  const h = imgEl.naturalHeight || imgEl.height;
+  const longest = Math.max(w, h);
+  if(longest <= UPSCALER_MAX_INPUT_DIM) return Promise.resolve(imgEl);
+  const scale = UPSCALER_MAX_INPUT_DIM / longest;
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(w * scale);
+  canvas.height = Math.round(h * scale);
+  canvas.getContext('2d').drawImage(imgEl, 0, 0, canvas.width, canvas.height);
+  return upscalerCanvasToImage(canvas);
+}
+
+function upscalerCanvasToImage(canvas){
+  return new Promise(function(resolve, reject){
+    const img = new Image();
+    img.onload = function(){ resolve(img); };
+    img.onerror = reject;
+    img.src = canvas.toDataURL('image/png');
   });
 }
+
+function upscalerResizeCanvas(canvas, targetW, targetH){
+  const out = document.createElement('canvas');
+  out.width = targetW;
+  out.height = targetH;
+  out.getContext('2d').drawImage(canvas, 0, 0, targetW, targetH);
+  return out;
+}
+
+// Runs one real forward pass of the neural network (native 4x) and returns a canvas.
+async function upscalerRunModelPassAsync(imgEl){
+  const hwcUint = tf.tidy(function(){
+    const pixels = tf.browser.fromPixels(imgEl);
+    const input = pixels.toFloat().div(255).expandDims(0);
+    const output = upscalerModelInstance.execute(input);
+    const hwc = output.squeeze([0]).transpose([1, 2, 0]);
+    return hwc.clipByValue(0, 1).mul(255).round().cast('int32');
+  });
+  const canvas = document.createElement('canvas');
+  canvas.width = hwcUint.shape[1];
+  canvas.height = hwcUint.shape[0];
+  await tf.browser.toPixels(hwcUint, canvas);
+  hwcUint.dispose();
+  return canvas;
+}
+
+// 4x is native. 2x downsizes the 4x result (still real AI detail underneath).
+// 8x runs the network twice (4x -> 16x) then downsizes to 8x — heavier, but still real AI upscaling.
+async function runClientUpscale(imgEl, multiplier){
+  await ensureUpscalerLoaded();
+  const cappedImg = await upscalerCapInputSize(imgEl);
+  const pass1Canvas = await upscalerRunModelPassAsync(cappedImg);
+
+  if(multiplier === 4){
+    return pass1Canvas.toDataURL('image/png');
+  }
+  if(multiplier === 2){
+    const targetW = (cappedImg.naturalWidth || cappedImg.width) * 2;
+    const targetH = (cappedImg.naturalHeight || cappedImg.height) * 2;
+    return upscalerResizeCanvas(pass1Canvas, targetW, targetH).toDataURL('image/png');
+  }
+  const pass1Img = await upscalerCanvasToImage(pass1Canvas);
+  const pass2Canvas = await upscalerRunModelPassAsync(pass1Img);
+  const targetW = (cappedImg.naturalWidth || cappedImg.width) * 8;
+  const targetH = (cappedImg.naturalHeight || cappedImg.height) * 8;
+  return upscalerResizeCanvas(pass2Canvas, targetW, targetH).toDataURL('image/png');
+}
+
 
 function runUpscale(){
   if(!upscalerSelectedFile) return;
