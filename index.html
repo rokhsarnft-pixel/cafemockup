@@ -2407,6 +2407,7 @@ function runUpscale(){
         btn.innerHTML = originalLabel;
       })
       .catch(function(err){
+        console.error('Upscaler error:', err);
         btn.disabled = false;
         btn.innerHTML = originalLabel;
         if(err && err.code === 'PAYMENT_REQUIRED'){
@@ -2420,8 +2421,8 @@ function runUpscale(){
           errorBox.style.display = 'block';
         } else {
           errorBox.textContent = lang==='fa'
-            ? 'پردازش روی این مرورگر/دستگاه با خطا مواجه شد. لطفاً مرورگر یا دستگاه دیگری را امتحان کنید.'
-            : 'Processing failed on this browser/device. Please try another browser or device.';
+            ? 'پردازش روی این مرورگر/دستگاه با خطا مواجه شد. لطفاً مرورگر یا دستگاه دیگری را امتحان کنید. (جزئیات خطا در Console)'
+            : 'Processing failed on this browser/device. Please try another browser or device. (See Console for details)';
           errorBox.style.display = 'block';
         }
       });
