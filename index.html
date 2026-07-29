@@ -2278,7 +2278,7 @@ function loadScriptOnce(src){
 
 function ensureUpscalerLoaded(){
   if(upscalerLibReady) return upscalerLibReady;
-  upscalerLibReady = loadScriptOnce('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js')
+  upscalerLibReady = loadScriptOnce('/vendor/tf.min.js')
     .then(function(){ return tf.loadGraphModel(UPSCALER_MODEL_URL); })
     .then(function(model){ upscalerModelInstance = model; });
   return upscalerLibReady;
