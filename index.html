@@ -2356,22 +2356,22 @@ async function upscalerRunModelPassAsync(imgEl){
 // 8x runs the network twice (4x -> 16x) then downsizes to 8x — heavier, but still real AI upscaling.
 async function runClientUpscale(imgEl, multiplier){
   await ensureUpscalerLoaded();
+  // Always compute the final output size from the ORIGINAL image — the internal GPU-safe
+  // downscale (upscalerCapInputSize) is only a processing detail and must never shrink the result.
+  const originalW = imgEl.naturalWidth || imgEl.width;
+  const originalH = imgEl.naturalHeight || imgEl.height;
   const cappedImg = await upscalerCapInputSize(imgEl);
   const pass1Canvas = await upscalerRunModelPassAsync(cappedImg);
 
   if(multiplier === 4){
-    return pass1Canvas.toDataURL('image/png');
+    return upscalerResizeCanvas(pass1Canvas, originalW * 4, originalH * 4).toDataURL('image/png');
   }
   if(multiplier === 2){
-    const targetW = (cappedImg.naturalWidth || cappedImg.width) * 2;
-    const targetH = (cappedImg.naturalHeight || cappedImg.height) * 2;
-    return upscalerResizeCanvas(pass1Canvas, targetW, targetH).toDataURL('image/png');
+    return upscalerResizeCanvas(pass1Canvas, originalW * 2, originalH * 2).toDataURL('image/png');
   }
   const pass1Img = await upscalerCanvasToImage(pass1Canvas);
   const pass2Canvas = await upscalerRunModelPassAsync(pass1Img);
-  const targetW = (cappedImg.naturalWidth || cappedImg.width) * 8;
-  const targetH = (cappedImg.naturalHeight || cappedImg.height) * 8;
-  return upscalerResizeCanvas(pass2Canvas, targetW, targetH).toDataURL('image/png');
+  return upscalerResizeCanvas(pass2Canvas, originalW * 8, originalH * 8).toDataURL('image/png');
 }
 
 
