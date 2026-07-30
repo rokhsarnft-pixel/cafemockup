@@ -2260,9 +2260,12 @@ function pickUpscaleSize(el, size){
 // BSD-3-Clause weights, converted in-house to TensorFlow.js — no third-party npm wrapper,
 // no GPL code) on top of the stable, widely-used @tensorflow/tfjs core library.
 const UPSCALER_MODEL_URL = '/models/realesr-general-x4v3/model.json';
-const UPSCALER_MAX_INPUT_DIM = 1024; // caps processing size so mobile devices stay fast/stable
+const UPSCALER_MAX_INPUT_DIM = 400; // kept conservative — TFJS packs 64-channel feature maps into
+// much larger textures internally than the raw pixel size suggests, so this must stay well
+// under the naive "GPU max / 4" estimate to avoid WebGL "texture size" errors on real devices.
 let upscalerLibReady = null;
 let upscalerModelInstance = null;
+let upscalerUsingCpuFallback = false;
 
 function loadScriptOnce(src){
   return new Promise(function(resolve, reject){
@@ -2315,20 +2318,38 @@ function upscalerResizeCanvas(canvas, targetW, targetH){
 }
 
 // Runs one real forward pass of the neural network (native 4x) and returns a canvas.
+// If the GPU (WebGL) backend can't allocate a texture large enough for this image
+// (common on laptops/older GPUs with real photos), automatically retries once on the
+// CPU backend — slower, but has no texture-size ceiling, so it always finishes.
 async function upscalerRunModelPassAsync(imgEl){
-  const hwcUint = tf.tidy(function(){
-    const pixels = tf.browser.fromPixels(imgEl);
-    const input = pixels.toFloat().div(255).expandDims(0);
-    const output = upscalerModelInstance.execute(input);
-    const hwc = output.squeeze([0]).transpose([1, 2, 0]);
-    return hwc.clipByValue(0, 1).mul(255).round().cast('int32');
-  });
-  const canvas = document.createElement('canvas');
-  canvas.width = hwcUint.shape[1];
-  canvas.height = hwcUint.shape[0];
-  await tf.browser.toPixels(hwcUint, canvas);
-  hwcUint.dispose();
-  return canvas;
+  async function runOnce(){
+    const hwcUint = tf.tidy(function(){
+      const pixels = tf.browser.fromPixels(imgEl);
+      const input = pixels.toFloat().div(255).expandDims(0);
+      const output = upscalerModelInstance.execute(input);
+      const hwc = output.squeeze([0]).transpose([1, 2, 0]);
+      return hwc.clipByValue(0, 1).mul(255).round().cast('int32');
+    });
+    const canvas = document.createElement('canvas');
+    canvas.width = hwcUint.shape[1];
+    canvas.height = hwcUint.shape[0];
+    await tf.browser.toPixels(hwcUint, canvas);
+    hwcUint.dispose();
+    return canvas;
+  }
+
+  try {
+    return await runOnce();
+  } catch (err) {
+    const msg = (err && err.message) || '';
+    if(!upscalerUsingCpuFallback && (msg.indexOf('texture size') !== -1 || msg.indexOf('WebGL') !== -1)){
+      console.error('Upscaler: WebGL texture limit hit, retrying on CPU backend (slower):', err);
+      await tf.setBackend('cpu');
+      upscalerUsingCpuFallback = true;
+      return await runOnce();
+    }
+    throw err;
+  }
 }
 
 // 4x is native. 2x downsizes the 4x result (still real AI detail underneath).
