@@ -2260,8 +2260,8 @@ function pickUpscaleSize(el, size){
 // BSD-3-Clause weights, converted in-house to TensorFlow.js — no third-party npm wrapper,
 // no GPL code) on top of the stable, widely-used @tensorflow/tfjs core library.
 const UPSCALER_MODEL_URL = '/models/realesr-general-x4v3/model.json';
-const UPSCALER_MAX_INPUT_DIM = 400; // kept conservative — TFJS packs 64-channel feature maps into
-// much larger textures internally than the raw pixel size suggests, so this must stay well
+const UPSCALER_TILE_SIZE = 200; // kept conservative — TFJS packs 64-channel feature maps into
+// much larger textures internally than the raw pixel size suggests, so each tile must stay well
 // under the naive "GPU max / 4" estimate to avoid WebGL "texture size" errors on real devices.
 let upscalerLibReady = null;
 let upscalerModelInstance = null;
@@ -2287,19 +2287,6 @@ function ensureUpscalerLoaded(){
   return upscalerLibReady;
 }
 
-function upscalerCapInputSize(imgEl){
-  const w = imgEl.naturalWidth || imgEl.width;
-  const h = imgEl.naturalHeight || imgEl.height;
-  const longest = Math.max(w, h);
-  if(longest <= UPSCALER_MAX_INPUT_DIM) return Promise.resolve(imgEl);
-  const scale = UPSCALER_MAX_INPUT_DIM / longest;
-  const canvas = document.createElement('canvas');
-  canvas.width = Math.round(w * scale);
-  canvas.height = Math.round(h * scale);
-  canvas.getContext('2d').drawImage(imgEl, 0, 0, canvas.width, canvas.height);
-  return upscalerCanvasToImage(canvas);
-}
-
 function upscalerCanvasToImage(canvas){
   return new Promise(function(resolve, reject){
     const img = new Image();
@@ -2317,10 +2304,10 @@ function upscalerResizeCanvas(canvas, targetW, targetH){
   return out;
 }
 
-// Runs one real forward pass of the neural network (native 4x) and returns a canvas.
-// If the GPU (WebGL) backend can't allocate a texture large enough for this image
-// (common on laptops/older GPUs with real photos), automatically retries once on the
-// CPU backend — slower, but has no texture-size ceiling, so it always finishes.
+// Runs one real forward pass of the neural network (native 4x) on a SINGLE small tile and
+// returns a canvas. If the GPU (WebGL) backend can't allocate a texture large enough (rare once
+// tiled, but some GPUs are more limited), automatically retries once on the CPU backend —
+// slower, but has no texture-size ceiling, so it always finishes.
 async function upscalerRunModelPassAsync(imgEl){
   async function runOnce(){
     const hwcUint = tf.tidy(function(){
@@ -2352,26 +2339,57 @@ async function upscalerRunModelPassAsync(imgEl){
   }
 }
 
-// 4x is native. 2x downsizes the 4x result (still real AI detail underneath).
-// 8x runs the network twice (4x -> 16x) then downsizes to 8x — heavier, but still real AI upscaling.
+// Splits the FULL image into small tiles, runs the real AI model on each tile separately
+// (so no tile ever hits the GPU texture limit and every pixel gets genuine AI-restored detail,
+// not a stretched approximation), then stitches the tiles back into one full-size 4x canvas.
+async function upscalerRunTiledPass(imgEl){
+  const w = imgEl.naturalWidth || imgEl.width;
+  const h = imgEl.naturalHeight || imgEl.height;
+
+  const srcCanvas = document.createElement('canvas');
+  srcCanvas.width = w;
+  srcCanvas.height = h;
+  srcCanvas.getContext('2d').drawImage(imgEl, 0, 0);
+
+  const outCanvas = document.createElement('canvas');
+  outCanvas.width = w * 4;
+  outCanvas.height = h * 4;
+  const outCtx = outCanvas.getContext('2d');
+
+  for(let y = 0; y < h; y += UPSCALER_TILE_SIZE){
+    for(let x = 0; x < w; x += UPSCALER_TILE_SIZE){
+      const tw = Math.min(UPSCALER_TILE_SIZE, w - x);
+      const th = Math.min(UPSCALER_TILE_SIZE, h - y);
+      const tileCanvas = document.createElement('canvas');
+      tileCanvas.width = tw;
+      tileCanvas.height = th;
+      tileCanvas.getContext('2d').drawImage(srcCanvas, x, y, tw, th, 0, 0, tw, th);
+      const tileImg = await upscalerCanvasToImage(tileCanvas);
+      const upscaledTile = await upscalerRunModelPassAsync(tileImg);
+      outCtx.drawImage(upscaledTile, x * 4, y * 4);
+    }
+  }
+  return outCanvas;
+}
+
+// 4x is one real tiled AI pass over the full original image — every pixel is genuine AI detail.
+// 2x runs the same real 4x pass, then does a single high-quality resize down to 2x (much less
+// quality loss shrinking than the old approach of stretching a tiny AI output up).
+// 8x runs the real 4x pass, then a plain 2x canvas resize on top (a second full tiled AI pass at
+// 4x-then-4x would be extremely slow in-browser) — still mostly genuine AI detail.
 async function runClientUpscale(imgEl, multiplier){
   await ensureUpscalerLoaded();
-  // Always compute the final output size from the ORIGINAL image — the internal GPU-safe
-  // downscale (upscalerCapInputSize) is only a processing detail and must never shrink the result.
   const originalW = imgEl.naturalWidth || imgEl.width;
   const originalH = imgEl.naturalHeight || imgEl.height;
-  const cappedImg = await upscalerCapInputSize(imgEl);
-  const pass1Canvas = await upscalerRunModelPassAsync(cappedImg);
+  const pass1Canvas = await upscalerRunTiledPass(imgEl);
 
   if(multiplier === 4){
-    return upscalerResizeCanvas(pass1Canvas, originalW * 4, originalH * 4).toDataURL('image/png');
+    return pass1Canvas.toDataURL('image/png');
   }
   if(multiplier === 2){
     return upscalerResizeCanvas(pass1Canvas, originalW * 2, originalH * 2).toDataURL('image/png');
   }
-  const pass1Img = await upscalerCanvasToImage(pass1Canvas);
-  const pass2Canvas = await upscalerRunModelPassAsync(pass1Img);
-  return upscalerResizeCanvas(pass2Canvas, originalW * 8, originalH * 8).toDataURL('image/png');
+  return upscalerResizeCanvas(pass1Canvas, originalW * 8, originalH * 8).toDataURL('image/png');
 }
 
 
